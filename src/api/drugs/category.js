@@ -44,7 +44,7 @@ export function addCategory(data) {
  */
 export function updateCategory(data) {
   return request({
-    url: `/drug/category /${data.categoryId}`,
+    url: `/drug/category/${data.categoryId}`,
     method: 'put',
     data
   })
@@ -57,7 +57,7 @@ export function updateCategory(data) {
  */
 export function deleteCategory(categoryId) {
   return request({
-    url: `/drug/category /${categoryId}`,
+    url: `/drug/category/${categoryId}`,
     method: 'delete'
   })
 } 

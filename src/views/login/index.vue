@@ -144,6 +144,7 @@ const handleLogin = async (captchaVerifyParam) => {
     const routesState = await routeStore.getUserRouters();
     if (loginState && routesState) {
       try {
+        console.log(routeStore.dynamicRoutes);
         const routers = convertToRoutes(routeStore.dynamicRoutes);
         console.log('routers', routers);
         addDynamicRoutes(routers, router);

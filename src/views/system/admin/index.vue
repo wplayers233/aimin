@@ -105,9 +105,10 @@
               <template #default="{ row }">
                 <el-button
                     v-permission="['system:user:info']"
-                  size="small"
-                  type="primary"
-                  @click="handleDetail(row)"
+                    size="small"
+                    type="primary"
+                    link
+                    @click="handleDetail(row)"
                 >
                   详情
                 </el-button>
@@ -115,6 +116,7 @@
                     v-permission="['system:user:edit']"
                     size="small"
                     type="warning"
+                    link
                     @click="handleEdit(row)"
                 >
                   修改

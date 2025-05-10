@@ -109,6 +109,7 @@
             <el-button 
               type="warning" 
               size="small"
+              link
               v-permission="['system:menu:edit']"
               @click="handleEdit(scope.row)"
             >
@@ -117,13 +118,15 @@
             <el-button 
               type="danger" 
               size="small"
+              link
               v-permission="['system:menu:delete']"
               @click="handleDelete(scope.row)"
             >
               删除
             </el-button>
             <el-button 
-              type="primary" 
+              type="primary"
+              link
               size="small"
               v-permission="['system:menu:add']"
               @click="handleAddChild(scope.row)"
@@ -198,7 +201,7 @@
         </el-form-item>
 
         <!-- 权限标识 -->
-        <el-form-item label="权限标识" prop="permKey" v-if="menuForm.permType !== '目录'">
+        <el-form-item label="权限标识" prop="permKey">
           <el-input v-model="menuForm.permKey" placeholder="请输入权限标识" maxlength="100" show-word-limit />
         </el-form-item>
 

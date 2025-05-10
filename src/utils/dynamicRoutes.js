@@ -18,7 +18,17 @@ const componentMap = {
 
   // 药品管理
   'drugs': Layout,
-  'drugs/index': () => import('@/views/drugs/index.vue'),
+  'drugs/index': () => import('@/views/drugs/drug-list/index.vue'),
+  'drugs/category': () => import('@/views/drugs/drug-category/index.vue'),
+
+  // 运营管理
+  'operations': Layout,
+  'operations/xcx': () => import('@/views/operations/xcx/index.vue'),
+
+  //医生管理
+  'doctor': Layout,
+  'doctor/index': () => import('@/views/doctor/index.vue'),
+  'doctor/hospital': () => import('@/views/doctor/hospital.vue'),
 
   // 错误页面
   '404': () => import('@/views/error/404.vue')
@@ -31,6 +41,7 @@ const componentMap = {
  */
 export function convertToRoutes(asyncRoutes) {
   return asyncRoutes.map(route => {
+    console.log('route', route)
     const {path, component, name, meta, children, redirect} = route
 
     // 检查组件是否存在于映射表中

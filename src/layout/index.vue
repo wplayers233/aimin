@@ -3,7 +3,7 @@
     <!-- 左侧菜单栏 -->
     <div class="sidebar-container">
       <div class="logo-container">
-        <h1>LOGO</h1>
+        <img src="/logo.png" width="50%" alt="logo">
       </div>
       <el-menu
           :default-active="activeMenu"
@@ -244,6 +244,7 @@ function handleLogout() {
   justify-content: center;
   color: #fff;
   padding: 10px 0;
+  background: #fff;
 }
 
 .el-menu-vertical {
