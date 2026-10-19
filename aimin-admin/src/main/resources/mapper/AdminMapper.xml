@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.oimc.aimin.admin.mapper.AdminMapper">
+
+    <!-- 结果映射，包含角色和权限的嵌套结果 -->
+    <resultMap id="AdminWithRolesAndPermissionsMap" type="com.oimc.aimin.admin.model.entity.Admin">
+        <id property="id" column="id"/>
+        <result property="username" column="username"/>
+        <result property="password" column="password"/>
+        <result property="gender" column="gender"/>
+        <result property="phone" column="phone"/>
+        <result property="status" column="status"/>
+        <result property="createAt" column="create_at"/>
+        <result property="updateAt" column="update_at"/>
+        <result property="nickname" column="nickname"/>
+        <result property="deptId" column="dept_id"/>
+        
+        <!-- 角色集合，一对多关系 -->
+        <collection property="roles" ofType="com.oimc.aimin.admin.model.entity.Role">
+            <id property="id" column="role_id"/>
+            <result property="roleName" column="role_name"/>
+            <result property="roleCode" column="role_code"/>
+            <result property="roleDesc" column="role_desc"/>
+            <result property="createAt" column="role_create_at"/>
+            <result property="updateAt" column="role_update_at"/>
+            
+            <!-- 权限集合，一对多关系 -->
+            <collection property="permissions" ofType="com.oimc.aimin.admin.model.entity.Permission">
+                <id property="id" column="perm_id"/>
+                <result property="title" column="title"/>
+                <result property="permType" column="perm_type"/>
+                <result property="permKey" column="perm_key"/>
+                <result property="path" column="path"/>
+                <result property="routerName" column="router_name"/>
+                <result property="parentId" column="parent_id"/>
+                <result property="icon" column="icon"/>
+                <result property="component" column="component"/>
+                <result property="redirect" column="redirect"/>
+                <result property="hidden" column="hidden"/>
+                <result property="sort" column="sort"/>
+                <result property="status" column="perm_status"/>
+                <result property="createAt" column="perm_create_at"/>
+                <result property="updateAt" column="perm_update_at"/>
+            </collection>
+        </collection>
+    </resultMap>
+
+    <sql id="roleFields">
+            r.id AS role_id,
+            r.role_name,
+            r.role_code,
+            r.role_desc,
+            r.create_at AS role_create_at,
+            r.update_at AS role_update_at
+    </sql>
+    <sql id="permissionFields">
+            p.id AS perm_id,
+            p.title,
+            p.perm_type,
+            p.perm_key,
+            p.path,
+            p.router_name,
+            p.parent_id,
+            p.icon,
+            p.component,
+            p.redirect,
+            p.hidden,
+            p.sort,
+            p.status AS perm_status,
+            p.create_at AS perm_create_at,
+            p.update_at AS perm_update_at
+    </sql>
+
+    <!-- 获取管理员完整信息，包括角色和权限 -->
+    <select id="getAdminWithRolesAndPermissions" resultMap="AdminWithRolesAndPermissionsMap">
+        SELECT 
+            a.*,
+            <include refid="roleFields"/>
+            ,
+            <include refid="permissionFields"/>
+        FROM 
+            t_admin a
+        LEFT JOIN 
+            t_admin_role ar ON a.id = ar.admin_id
+        LEFT JOIN 
+            t_role r ON ar.role_id = r.id
+        LEFT JOIN 
+            t_role_permission rp ON r.id = rp.role_id
+        LEFT JOIN 
+            t_permission p ON rp.perm_id = p.id
+        WHERE 
+            a.id = #{adminId}
+    </select>
+</mapper>

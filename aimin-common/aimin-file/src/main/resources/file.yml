@@ -1,0 +1,8 @@
+oss:
+  endpoint: https://oss-cn-beijing.aliyuncs.com
+  accessKeyId: ${OSS_ACCESS_KEY_ID}
+  secretAccessKey: ${OSS_SECRET_ACCESS_KEY}
+  bucketName: inquiry-xcx
+  bucketDomain: https://inquiry-xcx.oss-cn-beijing.aliyuncs.com/
+
+model: oss

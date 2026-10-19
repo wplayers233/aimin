@@ -1,0 +1,47 @@
+aimin-cache:
+  config:
+    # 是否存储空值，默认true，防止缓存穿透
+    allowNullValues: true
+    dynamic: true
+    # 组合缓存配置
+    composite:
+      # 是否全部启用一级缓存，默认false
+      L1EnabledGlobally: true
+      # l1ManualKeySet:
+        # - "userCache：1"
+      # 是否手动启用一级缓存，默认false
+      # l1Enabled4Manually: false
+      # l1NameSet:
+      #  - "userCache"
+
+    # 一级缓存
+    caffeine:
+      # 是否自动刷新过期缓存 true 是 false 否
+      #autoRefreshExpireCache: false
+      # 缓存刷新调度线程池的大小
+      #refreshPoolSize: 2
+      # 缓存刷新的频率(秒)
+      #refreshPeriod: 10
+      # 写入后过期时间(秒)
+      expireAfterWrite: 180
+      # 访问后过期时间(秒)
+      expireAfterAccess: 180
+      # 初始化大小
+      initialCapacity: 1
+      # 最大缓存对象个数，超过此数量时之前放入的缓存将失效
+      maximumSize: 10000
+
+    # 二级缓存
+    redis:
+      # 全局过期时间，单位毫秒，默认不过期
+      defaultExpiration: 300000
+      # 每个cacheName的过期时间，单位毫秒，优先级比defaultExpiration高
+      expires: { userCache: 300000, goodsCache: 50000 }
+      # 缓存更新时通知其他节点的topic名称 默认 cache:redis:caffeine:topic
+      topic: cache:redis:caffeine:topic
+
+l2cache:
+  initial-capacity: 1000
+  maximum-size: 10000
+  expire-after-write: 60
+  time-unit: SECONDS

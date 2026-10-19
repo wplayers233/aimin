@@ -1,0 +1,24 @@
+server:
+  port: 8084
+  servlet:
+    context-path: /aimin-admin
+
+spring:
+  application:
+    name: aimin-admin
+  profiles:
+    active: dev
+  aop:
+    proxy-target-class: true
+
+ # classpath 引入其他配置，报红，忽略即可
+  config:
+    import:
+      - classpath:ds.yml
+      - classpath:redis.yml
+      - classpath:cache.yml
+      - classpath:base.yml
+
+# 登录验证码为服务端自带的本地算术验证码（见 CaptchaService），
+# 不再依赖阿里云验证码与 AccessKey；如需替换为图形/滑块验证码，
+# 保持 GET /public/auth/captcha 与 LoginRequest.captchaId/captchaAnswer 契约即可。

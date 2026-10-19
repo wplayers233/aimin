@@ -1,0 +1,20 @@
+package ${package.Service};
+
+import ${package.Entity}.${entity};
+import com.github.yulichang.extension.mapping.base.MPJDeepService;
+
+/**
+ * <p>
+ * ${table.comment!} 服务类
+ * </p>
+ *
+ * @author ${author}
+ * @since ${date}
+ */
+<% if(kotlin){ %>
+interface ${table.serviceName} : MPJDeepService<${entity}>
+<% }else{ %>
+public interface ${table.serviceName} extends MPJDeepService<${entity}> {
+
+}
+<% } %>

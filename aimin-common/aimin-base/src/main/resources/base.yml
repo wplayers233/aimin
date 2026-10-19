@@ -1,0 +1,17 @@
+spring:
+  cloud:
+    nacos:
+      server-addr: ${NACOS_SERVER_ADDR}
+      discovery:
+        namespace: c2b3b47a-098e-4609-91a8-3e97b59405cf
+        group: DEFAULT_GROUP
+      config:
+        namespace: c2b3b47a-098e-4609-91a8-3e97b59405cf
+        group: DEFAULT_GROUP
+        file-extension: yaml
+  jackson:
+    default-property-inclusion: non_null
+    # 配置 Date 类的时间格式，如果不涉及可以不加
+    date-format: yyyy-MM-dd HH:mm:ss
+    # 配置 Date 类的时区，如果不涉及可以不加
+    time-zone: GMT+8

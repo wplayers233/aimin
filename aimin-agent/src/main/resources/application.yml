@@ -1,0 +1,38 @@
+server:
+  port: 8087
+  servlet:
+    context-path: /aimin-agent
+
+spring:
+  application:
+    name: aimin-agent
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
+
+aimin:
+  agent:
+    # LLM 配置：DeepSeek（OpenAI 兼容协议）。不配 key 时自动进入演示模式（MockLLM）
+    llm:
+      base-url: https://api.deepseek.com/v1
+      api-key: ${DEEPSEEK_API_KEY:}
+      model: deepseek-chat
+      temperature: 0.3
+    # 向量库：memory（InMemoryEmbeddingStore + 文件持久化）或 redis（Redis Stack，待部署）
+    vector-store: memory
+    vector-file: ./data/agent-embeddings.json
+    # 上传文档存储目录
+    upload-dir: ./data/docs
+    # 检索条数
+    top-k: 5
+    # 药品库（本机 MySQL aimin 库）
+    drug:
+      datasource:
+        url: ${MYSQL_URL:jdbc:mysql://127.0.0.1:3306/aimin?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true}
+        username: ${MYSQL_USERNAME:root}
+        password: ${MYSQL_PASSWORD:123456}
+
+logging:
+  level:
+    com.oimc.aimin.agent: info

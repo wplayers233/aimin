@@ -1,0 +1,31 @@
+server:
+  port: 8080
+
+spring:
+  profiles:
+    active: dev
+
+  application:
+    name: aimin-gateway
+
+  config:
+    import:
+      - classpath:redis.yml
+      - classpath:base.yml
+  cloud:
+    gateway:
+      routes:
+        - id: aimin-auth-server
+          uri: http://127.0.0.1:8081
+          predicates:
+            - Path=/aimin-auth/**
+
+        - id: aimin-admin-server
+          uri: http://127.0.0.1:8084
+          predicates:
+            - Path=/aimin-admin/**
+
+        - id: aimin-agent-server
+          uri: http://127.0.0.1:8087
+          predicates:
+            - Path=/aimin-agent/**

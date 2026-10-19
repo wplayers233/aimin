@@ -1,0 +1,4 @@
+com.oimc.aimin.cache.formal.AiminCacheAutoConfiguration
+com.oimc.aimin.cache.simple.config.L2CacheConfig
+com.oimc.aimin.cache.simple.aspect.L2CacheAspect
+com.oimc.aimin.cache.simple.config.SimpleCacheProperties

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.oimc</groupId>
+        <artifactId>aimin</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>aimin-common</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>aimin-common</name>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>aimin-base</module>
+        <module>aimin-generator</module>
+        <module>aimin-redis</module>
+        <module>aimin-cache</module>
+        <module>aimin-ds</module>
+        <module>aimin-es</module>
+        <module>aimin-mq</module>
+        <module>aimin-satoken</module>
+        <module>aimin-file</module>
+        <module>aimin-mongo</module>
+
+    </modules>
+</project>
