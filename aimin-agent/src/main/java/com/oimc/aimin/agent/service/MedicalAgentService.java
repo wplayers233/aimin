@@ -265,6 +265,11 @@ public class MedicalAgentService {
         return memory.history(sessionId);
     }
 
+    /** 是否处于演示模式（未配置 LLM Key） */
+    public boolean isMock() {
+        return llm.isMock();
+    }
+
     // ---------- 待确认项 ----------
 
     private void rememberPending(String sessionId, PendingAsk ask) {

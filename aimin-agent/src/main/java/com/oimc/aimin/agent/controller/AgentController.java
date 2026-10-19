@@ -72,6 +72,17 @@ public class AgentController {
         return emitter;
     }
 
+    /** 运行状态：模型模式 + 知识库规模（前端用于展示“演示模式/已接入”） */
+    @GetMapping("/status")
+    public ResponseEntity<?> status() {
+        var docs = ingestionService.listDocs();
+        int chunks = docs.stream().mapToInt(IngestionService.DocInfo::chunks).sum();
+        return ResponseEntity.ok(Map.of("code", 200, "msg", "ok", "data", Map.of(
+                "mock", agentService.isMock(),
+                "docs", docs.size(),
+                "chunks", chunks)));
+    }
+
     /** 会话历史（优先读库，进程内记忆兜底） */
     @GetMapping("/sessions/{sessionId}/messages")
     public ResponseEntity<?> history(@PathVariable String sessionId) {
@@ -82,8 +93,7 @@ public class AgentController {
         return ResponseEntity.ok(Map.of("code", 200, "msg", "ok", "data", messages));
     }
 
-    /** 会话列表（按最近更新时间倒序） */
-    @GetMapping("/sessions")
+    /** 会话列表（按最近更新时间倒序） */    @GetMapping("/sessions")
     public ResponseEntity<?> sessions(@RequestParam(defaultValue = "50") int limit) {
         return ResponseEntity.ok(Map.of("code", 200, "msg", "ok",
                 "data", persistenceService.listSessions(limit)));
