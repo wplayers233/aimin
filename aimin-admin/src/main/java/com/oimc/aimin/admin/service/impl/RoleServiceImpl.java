@@ -31,6 +31,8 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements Ro
 
     private final RolePermissionMapper rolePermissionMapper;
 
+    private final com.oimc.aimin.admin.service.AdminAuditService auditService;
+
     public final static String CACHE_NAME = "role";
 
 
@@ -106,6 +108,7 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements Ro
     @CacheEvict(value = CACHE_NAME, allEntries = true)
     public void insert(Role role) {
         save(role);
+        auditService.audit("admin-console", "ROLE_CREATE", "role:" + role.getId(), role.getRoleName());
     }
 
     @Override
@@ -118,18 +121,21 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements Ro
     @CacheEvict(value = CACHE_NAME, allEntries = true)
     public void update(Role role) {
         updateById(role);
+        auditService.audit("admin-console", "ROLE_UPDATE", "role:" + role.getId(), role.getRoleName());
     }
 
     @Override
     @CacheEvict(value = CACHE_NAME, allEntries = true)
     public void delete(Integer id) {
         removeById(id);
+        auditService.audit("admin-console", "ROLE_DELETE", "role:" + id, null);
     }
 
     @Override
     @CacheEvict(value = CACHE_NAME, allEntries = true)
     public void delete(Collection<Integer> ids) {
         removeByIds(ids);
+        auditService.audit("admin-console", "ROLE_DELETE_BATCH", "role", "ids=" + ids);
     }
 
     @Override

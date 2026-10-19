@@ -43,6 +43,8 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
 
     private final AdminRoleMapper adminRoleMapper;
 
+    private final com.oimc.aimin.admin.service.AdminAuditService auditService;
+
     @Override
     public SaTokenInfo login(LoginRequest loginReq) {
         // 1. 使用LambdaQueryWrapper
@@ -52,6 +54,7 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
         // 2. 明确命名查询结果
         Admin adminUser = getOne(queryWrapper);
         if (adminUser == null) {
+            auditService.audit(loginReq.getUsername(), "ADMIN_LOGIN_FAIL", "admin", "用户名不存在");
             throw BusinessException.of("用户名或密码错误");
         }
 
@@ -63,13 +66,16 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
         // 4. 密码验证逻辑
         Boolean verified = PwdUtils.verifyBCryptHash(loginReq.getPassword(), adminUser.getPassword());
         if (!verified) {
+            auditService.audit(adminUser.getUsername(), "ADMIN_LOGIN_FAIL", "admin:" + adminUser.getId(), "密码错误");
             throw BusinessException.of("用户名或密码错误");
         }
 
         // 5. 账号状态校验：0/禁用 的账号不允许登录
         if (Boolean.FALSE.equals(adminUser.getStatus())) {
+            auditService.audit(adminUser.getUsername(), "ADMIN_LOGIN_FAIL", "admin:" + adminUser.getId(), "账号已禁用");
             throw BusinessException.of("账号已被禁用，请联系管理员");
         }
+        auditService.audit(adminUser.getUsername(), "ADMIN_LOGIN", "admin:" + adminUser.getId(), "登录成功");
         return StpAdminUtil.loginByPc(adminUser.getId());
     }
 

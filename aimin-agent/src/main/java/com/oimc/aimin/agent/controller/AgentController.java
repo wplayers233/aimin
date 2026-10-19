@@ -1,6 +1,7 @@
 package com.oimc.aimin.agent.controller;
 
 import com.oimc.aimin.agent.model.ChatRequest;
+import com.oimc.aimin.agent.service.AgentPersistenceService;
 import com.oimc.aimin.agent.service.IngestionService;
 import com.oimc.aimin.agent.service.MedicalAgentService;
 import org.slf4j.Logger;
@@ -31,11 +32,14 @@ public class AgentController {
 
     private final MedicalAgentService agentService;
     private final IngestionService ingestionService;
+    private final AgentPersistenceService persistenceService;
     private final ExecutorService executor = Executors.newCachedThreadPool();
 
-    public AgentController(MedicalAgentService agentService, IngestionService ingestionService) {
+    public AgentController(MedicalAgentService agentService, IngestionService ingestionService,
+                           AgentPersistenceService persistenceService) {
         this.agentService = agentService;
         this.ingestionService = ingestionService;
+        this.persistenceService = persistenceService;
     }
 
     /** 对话（SSE 流式） */
@@ -68,10 +72,28 @@ public class AgentController {
         return emitter;
     }
 
-    /** 会话历史 */
+    /** 会话历史（优先读库，进程内记忆兜底） */
     @GetMapping("/sessions/{sessionId}/messages")
-    public List<?> history(@PathVariable String sessionId) {
-        return agentService.history(sessionId);
+    public ResponseEntity<?> history(@PathVariable String sessionId) {
+        List<?> messages = persistenceService.listMessages(sessionId);
+        if (messages.isEmpty()) {
+            messages = agentService.history(sessionId);
+        }
+        return ResponseEntity.ok(Map.of("code", 200, "msg", "ok", "data", messages));
+    }
+
+    /** 会话列表（按最近更新时间倒序） */
+    @GetMapping("/sessions")
+    public ResponseEntity<?> sessions(@RequestParam(defaultValue = "50") int limit) {
+        return ResponseEntity.ok(Map.of("code", 200, "msg", "ok",
+                "data", persistenceService.listSessions(limit)));
+    }
+
+    /** 用户放弃高风险问题：清待确认项并记审计 */
+    @PostMapping("/risk/reject")
+    public ResponseEntity<?> reject(@RequestBody ChatRequest request) {
+        boolean removed = agentService.rejectPending(request.sessionId());
+        return ResponseEntity.ok(Map.of("code", 200, "msg", "ok", "data", Map.of("rejected", removed)));
     }
 
     /** 知识文档上传入库 */

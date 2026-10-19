@@ -11,14 +11,14 @@
 
     <groupId>com.oimc</groupId>
     <artifactId>aimin</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0</version>
     <packaging>pom</packaging>
     <name>aimin</name>
     <description>aimin</description>
     <url/>
 
     <properties>
-        <aimin.version>0.0.1-SNAPSHOT</aimin.version>
+        <aimin.version>1.0.0</aimin.version>
         <java.version>21</java.version>
         <spring-cloud.version>2024.0.0</spring-cloud.version>
         <spring-cloud-alibaba.version>2023.0.1.0</spring-cloud-alibaba.version>

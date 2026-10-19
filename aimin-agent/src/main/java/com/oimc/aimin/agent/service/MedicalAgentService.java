@@ -56,6 +56,7 @@ public class MedicalAgentService {
     private final DrugRetriever drugRetriever;
     private final RiskEvaluator riskEvaluator;
     private final SessionMemory memory;
+    private final AgentPersistenceService persistence;
     private final int topK;
 
     /** 待确认问题：sessionId -> (confirmToken, question, createdAt) */
@@ -69,12 +70,14 @@ public class MedicalAgentService {
                                DrugRetriever drugRetriever,
                                RiskEvaluator riskEvaluator,
                                SessionMemory memory,
+                               AgentPersistenceService persistence,
                                @Value("${aimin.agent.top-k}") int topK) {
         this.llm = llm;
         this.hybridRetriever = hybridRetriever;
         this.drugRetriever = drugRetriever;
         this.riskEvaluator = riskEvaluator;
         this.memory = memory;
+        this.persistence = persistence;
         this.topK = topK;
     }
 
@@ -112,29 +115,34 @@ public class MedicalAgentService {
             }
 
             send.accept(AgentEvent.of("start", Map.of("mock", llm.isMock())));
+            persistence.ensureSession(sessionId, message);
 
             boolean confirmed = confirmToken != null && !confirmToken.isBlank();
+            // 风险中断时第一阶段已写入用户消息，确认重入时不能再写一次
+            boolean userRecorded = confirmed;
             String question = message;
 
             if (confirmed) {
                 // 确认令牌必须绑定到发起确认时的原问题：忽略客户端本次传入的 message，防止拿旧令牌问新问题
                 PendingAsk ask = consume(sessionId, confirmToken);
                 if (ask == null) {
+                    persistence.audit("agent", "RISK_TOKEN_INVALID", sessionId, "确认令牌无效");
                     send.accept(AgentEvent.of("error", Map.of("message", "确认令牌无效或已过期，请重新提问")));
                     send.accept(AgentEvent.of("done", Map.of()));
                     finish.run();
                     return;
                 }
                 question = ask.question();
+                persistence.audit("agent", "RISK_CONFIRMED", sessionId, question);
             } else {
                 // 1. 意图识别（轻量规则）：问候/闲聊直接回复
                 if (message.strip().matches("(你好|您好|hi|hello|在吗|谢谢|thanks)[!！。~～]?")) {
                     String greeting = "您好，我是医疗辅助参考助手。请描述症状、药品或诊疗问题，我将基于知识库给出可追溯的参考信息。";
-                    memory.addUser(sessionId, message);
+                    recordUser(sessionId, message);
                     for (int i = 0; i < greeting.length(); i += 3) {
                         send.accept(AgentEvent.of("delta", Map.of("text", greeting.substring(i, Math.min(i + 3, greeting.length())))));
                     }
-                    memory.addAssistant(sessionId, greeting);
+                    recordAssistant(sessionId, greeting);
                     send.accept(AgentEvent.of("done", Map.of("disclaimer", DISCLAIMER)));
                     finish.run();
                     return;
@@ -145,7 +153,8 @@ public class MedicalAgentService {
                 if (hit.isPresent()) {
                     String token = UUID.randomUUID().toString();
                     rememberPending(sessionId, new PendingAsk(token, message, System.currentTimeMillis()));
-                    memory.addUser(sessionId, message);
+                    recordUser(sessionId, message);
+                    persistence.audit("agent", "RISK_INTERRUPT", hit.get(), message);
                     send.accept(AgentEvent.of("risk", Map.of(
                             "confirmToken", token,
                             "keyword", hit.get(),
@@ -158,9 +167,13 @@ public class MedicalAgentService {
             }
 
             // 3. 混合检索（向量 + BM25）与药品库，再 RRF 融合
+            long retrievalStart = System.currentTimeMillis();
             List<Evidence> knowledgeHits = hybridRetriever.retrieve(question, topK);
             List<Evidence> drugHits = drugRetriever.retrieve(question, Math.min(3, topK));
             List<Evidence> evidence = RrfFusion.fuse(List.of(knowledgeHits, drugHits), topK);
+            long retrievalCost = System.currentTimeMillis() - retrievalStart;
+            log.info("检索完成 session={} 耗时={}ms 知识库={} 药品={} 融合={} 拒答={}",
+                    sessionId, retrievalCost, knowledgeHits.size(), drugHits.size(), evidence.size(), evidence.isEmpty());
 
             send.accept(AgentEvent.of("evidence", Map.of("items", evidence)));
 
@@ -168,11 +181,13 @@ public class MedicalAgentService {
             if (evidence.isEmpty()) {
                 String refusal = "知识库暂未收录与该问题相关的可靠资料，为避免误导，本次不作推断。"
                         + "建议补充相关指南或药品说明书后再提问，或咨询专业医师。";
-                memory.addUser(sessionId, question);
+                if (!userRecorded) {
+                    recordUser(sessionId, question);
+                }
                 for (int i = 0; i < refusal.length(); i += 3) {
                     send.accept(AgentEvent.of("delta", Map.of("text", refusal.substring(i, Math.min(i + 3, refusal.length())))));
                 }
-                memory.addAssistant(sessionId, refusal);
+                recordAssistant(sessionId, refusal);
                 send.accept(AgentEvent.of("done", Map.of("disclaimer", DISCLAIMER, "refused", true)));
                 finish.run();
                 return;
@@ -190,9 +205,12 @@ public class MedicalAgentService {
             String userPrompt = (ctx.isEmpty() ? "【知识库未命中】\n\n" : "【参考资料】\n" + ctx + "【问题】\n")
                     + question;
 
-            memory.addUser(sessionId, question);
+            if (!userRecorded) {
+                recordUser(sessionId, question);
+            }
 
             // 5. 流式生成
+            final String askedQuestion = question;
             StringBuilder answer = new StringBuilder();
             llm.stream(
                     SYSTEM_PROMPT,
@@ -208,7 +226,8 @@ public class MedicalAgentService {
                         finish.run();
                     },
                     () -> {
-                        memory.addAssistant(sessionId, answer.toString());
+                        recordAssistant(sessionId, answer.toString());
+                        persistence.audit("agent", "ANSWER", sessionId, askedQuestion);
                         // 输出侧兜底：出现具体剂量时追加提示（已确认的高风险问题除外）
                         if (!confirmed) {
                             riskEvaluator.outputRisk(answer.toString()).ifPresent(category ->
@@ -230,6 +249,7 @@ public class MedicalAgentService {
     public void confirm(String sessionId, String confirmToken, SseEmitter emitter) {
         PendingAsk ask = peek(sessionId, confirmToken);
         if (ask == null) {
+            persistence.audit("agent", "RISK_TOKEN_INVALID", sessionId, "确认令牌无效或已过期");
             try {
                 emitter.send(AgentEvent.of("error", Map.of("message", "无待确认问题或令牌已过期")));
             } catch (IOException ignored) {
@@ -273,5 +293,27 @@ public class MedicalAgentService {
 
     private boolean isExpired(PendingAsk ask) {
         return System.currentTimeMillis() - ask.createdAt() > PENDING_TTL_MS;
+    }
+
+    // ---------- 记忆 + 落库 ----------
+
+    private void recordUser(String sessionId, String content) {
+        memory.addUser(sessionId, content);
+        persistence.saveMessage(sessionId, "user", content);
+    }
+
+    private void recordAssistant(String sessionId, String content) {
+        memory.addAssistant(sessionId, content);
+        persistence.saveMessage(sessionId, "assistant", content);
+    }
+
+    /** 用户主动放弃高风险问题：清掉待确认项并记审计 */
+    public boolean rejectPending(String sessionId) {
+        PendingAsk ask = pendingAsks.remove(sessionId);
+        if (ask == null) {
+            return false;
+        }
+        persistence.audit("agent", "RISK_REJECTED", sessionId, ask.question());
+        return true;
     }
 }

@@ -5,10 +5,10 @@
     <parent>
        <groupId>com.oimc</groupId>
         <artifactId>aimin-common</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
+        <version>1.0.0</version>
     </parent>
     <artifactId>aimin-cache</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0</version>
     <name>aimin-cache</name>
     <description>aimin-cache</description>
     <properties>

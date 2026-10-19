@@ -105,6 +105,12 @@ curl -X POST http://127.0.0.1:8080/aimin-admin/public/auth/token \
 # → code:200 + tokenValue/tokenName(aimin-admin-token) + permissions
 ```
 agent 聊天走 `/aimin-agent/agent/chat`（SSE，事件：start/evidence/delta/risk/done），**必须带 `aimin-admin-token` 头**（网关已纳管，匿名 401）。
+会话/审计接口：`GET /aimin-agent/agent/sessions`、`GET /aimin-agent/agent/sessions/{id}/messages`、`POST /aimin-agent/agent/risk/reject`（放弃高风险问题）。
+
+评测（离线 CLI，跑完自动退出，结果写 `aimin-agent/data/eval/latest.json`）：
+```bash
+SERVER__PORT=18087 java --enable-preview -jar aimin-agent/target/aimin-agent.jar --aimin.eval.enabled=true
+```
 
 离线构建（外网不可达时）：`mvn -o -s ../.mvn-offline-settings.xml '-Daether.enhancedLocalRepository.trackingFilename=_none.repositories' '-Daether.artifactResolver.simpleLrmInterop=true' -DskipTests -pl :aimin-admin -am compile`（cwd=server，JAVA_HOME 指 JDK21）。
 
@@ -121,7 +127,10 @@ agent 聊天走 `/aimin-agent/agent/chat`（SSE，事件：start/evidence/delta/
 9. **鉴权不允许再放行**：网关 `StrategyFactory` 未匹配路径默认 `DenyPathStrategy`；admin 的 `SaTokenConfigure` 除 `/public/**` 外全部要求 `StpAdminUtil` 登录，`@SaCheckPermission` 必须带 `type = "ADMIN"`（默认 StpUtil 逻辑是另一套 token）。
 10. **验证码不可关闭**：`/public/auth/captcha` 发本地算术题，TTL 3 分钟、一次性消费；登录必须带 `captchaId` + `captchaAnswer`，阿里云 SDK 已移除，勿再加回 `aimin.captcha.enabled` 开关。
 11. **上传只允许 pdf/md/markdown/txt**：`IngestionService.sanitizeFileName` 会剥离目录、过滤非法字符并校验落地路径必须在上传目录内；新增格式先改白名单。
-12. **数据库增量脚本**：`server/sql/20261018_phase0_hardening.sql`（t_admin 唯一索引 + 删除药品菜单权限），新环境建库后需执行。
+12. **数据库增量脚本**：`server/sql/20261018_phase0_hardening.sql`（t_admin 唯一索引 + 删除药品菜单权限），`server/sql/20261019_demo_drugs.sql`（100 条演示药品），`server/sql/20261019_phase2_persistence.sql`（会话/消息/审计三表），新环境建库后按序执行。
+13. **会话与审计必须落库**：Agent 侧统一走 `AgentPersistenceService`（手机号/身份证落库前脱敏），后台登录与管理员/角色变更走 `AdminAuditService`；两者都写 `t_agent_audit`，不要绕过它们直接 insert 明文。
+14. **评测不是单测**：离线仓库缺 `junit-platform-launcher`，`mvn test` 跑不起来；用 `--aimin.eval.enabled=true` 的 CLI。检索阈值 `min-vector-score=0.88` / `min-bm25-score=6.5` 由该数据集标定，换语料或换 embedding 后必须重跑并重标。
+15. **演示语料只在知识库为空时灌入**（`aimin.seed-kb.enabled`，目录 `aimin-agent/data/kb-demo`）；要重灌就同时删 `data/agent-docs.json` 与 `data/agent-embeddings.json`。
 
 ## 待办（Roadmap）
 

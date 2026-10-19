@@ -1,108 +1,91 @@
-# 爱民医生（Aimin）
-官网：[渣哥-官网](https://www.zha-ge.cn)
+# Aimin 医疗诊断 Agent 工作台 · 后端
 
-基于SpringAi+SpringCloud实现的，私有化部署的，多模态医疗AI应用实战项目！
+面向医疗专业人士的辅助参考系统：本地知识库 RAG + 药品库检索 + 两阶段高风险确认，回答带可追溯证据角标。
+项目由开源药品管理后台改造而来，当前只保留真实运行所需的四个服务。
 
-**项目开源，无底线开源**
-前后端代码 + 部署安装文档 + 重点讲解，统统开源！！！
+## 模块与端口
 
-## 项目介绍
-
-项目名称：爱民医生（aimin）。项目是一个基于SpringCloud微服务架构的SpingAi医疗问诊实战项目，通过集成多种大模型，实现了一个完整的AI应用。项目采用前后端分离的开发模式，前端使用Vue3+Element Plus，后端使用SpringCloud+SpringBoot。
-
-## 项目地址
-[管理端：](https://gitee.com/dd_mark/aimin-admin-front)
-[小程序端：](https://gitee.com/dd_mark/aimin-xcx-user)
+| 模块 | 端口 | 说明 |
+|---|---|---|
+| aimin-gateway | 8080 | 统一入口；未登记路径默认拒绝（403），CORS 仅放行本地前端 |
+| aimin-auth | 8081 | 小程序/用户端认证（当前工作台未使用） |
+| aimin-admin | 8084 | 管理后台：登录（本地算术验证码）、管理员/角色/权限 |
+| aimin-agent | 8087 | 医疗 Agent：SSE 对话、知识库上传、混合检索、评测 |
+| aimin-common | - | base / ds / redis / satoken / cache / file 等公共组件 |
 
 ## 技术栈
 
-### AI相关
-- **Spring AI:** 1.0.0-M8
-- **Chat Model:** qwen2.5-1m:latest
-- **Embeding Model:** gme-Qwen2-VL-2B-Instruct
-- **Platform:** Ollama(下步体验vLLM)
-- **VectorStore:** Milvus
-- **下步集成并完成：** SpringAi MCP Server/Client
+- JDK 21（`--enable-preview`）、Spring Boot 3.4.0、Spring Cloud 2024.0.0
+- Sa-Token 1.39.0（admin/user 双账号体系，请求头 `aimin-admin-token` / `aimin-auth-token`）
+- MyBatis-Plus 3.5.9、MySQL 8、Redis
+- LangChain4j **0.36.2**（锁死：1.x 移除了进程内 ONNX embedding）、DeepSeek（OpenAI 兼容协议）
+- bge-small-zh 本地 ONNX embedding + InMemoryEmbeddingStore（JSON 持久化）
+- 自研中文 bigram BM25 + RRF 混合检索（无新依赖、无外部检索服务）
+- 前端：Vue 3 + Vite 6 + Element Plus + Pinia（见 `../admin-front`）
 
-### 后端技术栈
-- JDK 21
-- Springboot 3
-- SpringCloud 2024.0.0
-- SpringCloudAlibaba 2023.0.1.0
-- Nacos 2.4.3
-- Sa-token 1.39.0
-- Mybatis-plus 3.5.9
-- Es 8.9.0
-- Redis 7.0.11
-- Rabbitmq 4.0.5
-- Caffeine 3.1.8
-- Mysql 8.0
-- Canal 1.1.7
-- MongoDB
+## 本地启动
 
-### 前端技术栈
-- Vue3
-- Vite
-- Element Plus
-- Axios
-- Pinia
-- 小程序原生
+```bash
+# 环境变量（Git Bash 示例）
+export SERVER__PORT=8084 MYSQL_URL='jdbc:mysql://127.0.0.1:3306/aimin?...' \
+       MYSQL_USERNAME=root MYSQL_PASSWORD=123456 \
+       SPRING_CLOUD_NACOS_CONFIG_ENABLED=false SPRING_CLOUD_NACOS_DISCOVERY_ENABLED=false
 
-### 其他
-- 阿里云图形验证码
-- 微信支付
+cd aimin-admin  && java --enable-preview -jar target/aimin-admin.jar
+cd aimin-agent  && java --enable-preview -jar target/aimin-agent.jar     # 8087
+cd aimin-auth   && java --enable-preview -jar target/aimin-auth.jar      # 8081
+cd aimin-gateway && java --enable-preview -jar target/aimin-gateway.jar  # 8080
+```
 
-## 项目架构
+- 必须覆盖 `SERVER__PORT`（WorkBuddy 会泄漏该变量，Spring 松散绑定会抢走 `server.port`）。
+- Agent 不配 `DEEPSEEK_API_KEY` 时自动进入演示模式（MockLLM，`start` 事件里 `mock:true`）。
+- 离线构建（本机仓库已完整缓存）：
 
-项目采用微服务架构，主要包含以下模块：
-1. **后台管理服务（aimin-admin）** 后台管理服务
-2. **网关服务(aimin-gateway)**: 负责请求的路由和过滤
-3. **认证服务(aimin-auth)**: 处理用户认证和授权
-4. **AI服务(aimin-ai)**: AI服务
-5. **药品服务（aimin-drug）**：药品服务
-6. **搜索服务（aimin-search）**：用户搜索服务
-7. **数据同步（aimin-canal）**：数据同步服务
-7. **通用组件(common)**: 通用组件父项目
-   **通用组件包含：**
-   - aimin-base: 基础组件
-   - aimin-cache: 二级缓存自主实现组件
-   - aimin-ds: 数据源组件
-   - aimin-es: elasticsearch组件
-   - aimin-file: 文件上传下载组件（目前只支持oss，之后集成minio）
-   - aimin-generator: 代码生成器
-   - aimin-mongo: mongoDB组件
-   - aimin-mq: mq组件（目前只支持rabbitMQ,之后集成kafka）
-   - aimin-redis: redis组件
-   - aimin-satoken: satoken组件(已实现多账号认证)
+```bash
+mvn -o -s ../.mvn-offline-settings.xml \
+    -Daether.enhancedLocalRepository.trackingFilename=_none.repositories \
+    -Daether.artifactResolver.simpleLrmInterop=true \
+    -DskipTests -pl :aimin-gateway,:aimin-auth,:aimin-admin,:aimin-agent -am package
+```
 
-## 项目部署
+## 评测
 
-### 部署步骤
+评测集 `aimin-agent/data/eval/questions.json`：60 题（fact 30 / drug 12 / risk 10 / unanswerable 8）。
+评测器为离线 CLI，跑完自动退出并写 `data/eval/latest.json`：
 
-即将更新...
+```bash
+java --enable-preview -jar aimin-agent/target/aimin-agent.jar --aimin.eval.enabled=true
+```
 
-## 开发指南
+| 指标 | Phase A 向量基线 | Phase B 混合检索 |
+|---|---|---|
+| Recall@5 | 0.867 | **0.967** |
+| MRR | 0.668 | **0.781** |
+| 药品 Acc@5 | 0.000 | **1.000** |
+| 风险准确率 | 0.800 | **1.000** |
+| 拒答率 | 0.000 | **1.000** |
 
-### 本地开发环境搭建
+拒答门控：向量 top1 < 0.88 **且** BM25 top1 < 6.5 时返回固定拒答文案，不调用大模型。
+阈值由评测集诊断分数标定（`latest.json` 的 `diagnostics`），更换语料/embedding 后需重新标定。
 
-即将更新...
+## 目录
 
-### API文档
-即将更新...
+```
+aimin-agent/
+  src/main/java/com/oimc/aimin/agent/
+    service/      MedicalAgentService（编排）、IngestionService（入库/切片/注册表）
+    retrieval/    VectorRetriever、Bm25Index、HybridRetriever、DrugRetriever、RrfFusion
+    risk/         RiskEvaluator（硬编码规则，提示词不可绕过）
+    eval/         EvaluationRunner、EvalQuestion
+  data/           kb-demo（25 篇演示语料）、docs（上传留档）、eval（评测集与结果）
+```
 
-## 性能优化
+## 已知限制
 
-本项目在性能方面做了以下优化：
+- 向量库与文档注册表是进程内 + 本地 JSON，多实例部署需换 Redis Stack / PGVector。
+- 演示语料仅覆盖 25 个常见主题，不能替代真实指南库。
+- 评测集为内部自建，指标只用于回归对比，不代表临床效果。
+- 未接入真实 DeepSeek 时回答为演示文本，不能用于验收回答质量。
 
-1. 引入Redis缓存热点数据
-2. 使用Nginx做负载均衡
-4. 图片等静态资源使用CDN加速
-5. 采用异步处理提高响应速度
-   即将更新...
-
-## 安全措施
-
-即将更新...
-
-## 许可证
-即将更新...
+更多约定见 [AGENTS.md](AGENTS.md)、架构说明 [docs/medical-agent-architecture.md](docs/medical-agent-architecture.md)、
+整体优化记录 [../优化方案.md](../优化方案.md)。

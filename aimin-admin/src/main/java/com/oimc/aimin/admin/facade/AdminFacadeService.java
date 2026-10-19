@@ -50,6 +50,8 @@ public class AdminFacadeService {
 
     private final List<AdminDeleteHandler> deleteHandlers;
 
+    private final com.oimc.aimin.admin.service.AdminAuditService auditService;
+
     /**
      * 新增管理员
      * 通过责任链模式处理创建管理员的逻辑
@@ -67,6 +69,7 @@ public class AdminFacadeService {
             if (context.getAdminId() != null && context.getRoleIds() != null) {
                 adminService.updateRelationRoles(context.getAdminId(), context.getRoleIds());
             }
+            auditService.audit("admin-console", "ADMIN_CREATE", "admin:" + context.getAdminId(), context.getUsername());
         } catch (DuplicateKeyException e) {
             // 并发下 isExists 先查后写会漏，靠 t_admin.uk_username/uk_phone 兜底
             throw BusinessException.of("用户名或手机号已存在");
@@ -82,6 +85,7 @@ public class AdminFacadeService {
     @Transactional(rollbackFor = Exception.class)
     public void delete(AdminDelContext context) {
         deleteHandlers.forEach(handler -> handler.handle(context));
+        auditService.audit("admin-console", "ADMIN_DELETE", "admin", "批量删除管理员");
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -109,6 +113,7 @@ public class AdminFacadeService {
             if (req.getRoleIds() != null) {
                 adminService.updateRelationRoles(adminId, req.getRoleIds());
             }
+            auditService.audit("admin-console", "ADMIN_UPDATE", "admin:" + adminId, req.getUsername());
         } catch (DuplicateKeyException e) {
             throw BusinessException.of("用户名或手机号已存在");
         }
