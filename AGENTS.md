@@ -105,7 +105,7 @@ curl -X POST http://127.0.0.1:8080/aimin-admin/public/auth/token \
 # → code:200 + tokenValue/tokenName(aimin-admin-token) + permissions
 ```
 agent 聊天走 `/aimin-agent/agent/chat`（SSE，事件：start/evidence/delta/risk/done），**必须带 `aimin-admin-token` 头**（网关已纳管，匿名 401）。
-会话/审计接口：`GET /aimin-agent/agent/sessions`、`GET /aimin-agent/agent/sessions/{id}/messages`、`POST /aimin-agent/agent/risk/reject`（放弃高风险问题）。
+会话/审计接口：`GET /aimin-agent/agent/sessions`、`GET /aimin-agent/agent/sessions/{id}/messages`、`POST /aimin-agent/agent/risk/reject`（放弃高风险问题）、`GET /aimin-agent/agent/status`（模型模式与知识库规模）。
 
 评测（离线 CLI，跑完自动退出，结果写 `aimin-agent/data/eval/latest.json`）：
 ```bash

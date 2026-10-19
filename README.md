@@ -68,6 +68,13 @@ java --enable-preview -jar aimin-agent/target/aimin-agent.jar --aimin.eval.enabl
 拒答门控：向量 top1 < 0.88 **且** BM25 top1 < 6.5 时返回固定拒答文案，不调用大模型。
 阈值由评测集诊断分数标定（`latest.json` 的 `diagnostics`），更换语料/embedding 后需重新标定。
 
+## 会话、审计与治理
+
+- 三张表：`t_agent_session` / `t_agent_message` / `t_agent_audit`（`sql/20261019_phase2_persistence.sql`）。
+- `AgentPersistenceService`：会话 upsert、消息落库、审计写入、手机号与身份证号落库前脱敏；每日 03:30 清理 90 天前数据。
+- 后台登录（成功/失败）与管理员、角色变更由 `AdminAuditService` 写入同一张审计表。
+- 前端可拉取历史会话并回放；风险问题可“跳过，不生成”（记 `RISK_REJECTED` 审计）。
+
 ## 目录
 
 ```
