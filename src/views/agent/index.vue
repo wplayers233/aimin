@@ -29,8 +29,9 @@
           <h3>医疗诊断工作台</h3>
           <span class="chat-sub">会话 {{ sessionShortId }} · 输出仅作医学信息参考</span>
         </div>
-        <el-tag v-if="mockMode" type="warning" size="small" effect="plain">演示模式 · 未配置 LLM Key</el-tag>
-        <el-tag v-else type="success" size="small" effect="plain">DeepSeek 已接入</el-tag>
+        <el-tag v-if="mockMode === true" type="warning" size="small" effect="plain">演示模式 · 未配置 LLM Key</el-tag>
+        <el-tag v-else-if="mockMode === false" type="success" size="small" effect="plain">DeepSeek 已接入</el-tag>
+        <el-tag v-else type="info" size="small" effect="plain">检测模型状态…</el-tag>
       </div>
 
       <div class="chat-scroll" ref="scrollRef">
@@ -141,7 +142,7 @@
         <li><el-icon><CircleCheck /></el-icon>固定免责声明</li>
       </ul>
 
-      <div class="profile-note">会话仅保存在当前浏览器内存中，刷新页面后会重新开始。</div>
+      <div class="profile-note">会话与审计已落库，默认保留 90 天；手机号等敏感信息入库前脱敏。</div>
     </aside>
   </div>
 </template>
@@ -149,7 +150,7 @@
 <script setup>
 import { ref, computed, nextTick, onMounted, onUnmounted } from 'vue'
 import { ElMessage } from 'element-plus'
-import { chatStream, confirmStream, listSessions, getMessages, rejectRisk } from '@/api/agent'
+import { chatStream, confirmStream, listSessions, getMessages, getStatus, rejectRisk } from '@/api/agent'
 
 const sessionId = ref(crypto.randomUUID())
 const sessions = ref([{ id: sessionId.value, title: '新会话' }])
@@ -235,7 +236,19 @@ async function loadMessages(id) {
   }
 }
 
-onMounted(loadSessions)
+onMounted(() => {
+  loadSessions()
+  loadStatus()
+})
+
+async function loadStatus() {
+  try {
+    const res = await getStatus()
+    mockMode.value = !!res?.data?.mock
+  } catch (e) {
+    // 状态不可用时保持“检测中”，不阻塞问诊
+  }
+}
 
 function scrollToBottom() {
   nextTick(() => {
@@ -746,10 +759,14 @@ function renderMarkdown(text) {
   }
 
   .ov-label {
+    flex: 0 0 auto;
     color: var(--aimin-text-secondary, #6e6e73);
   }
 
   .ov-value {
+    margin-left: 10px;
+    text-align: right;
+    line-height: 1.3;
     font-weight: 600;
     color: var(--aimin-text, #1d1d1f);
 

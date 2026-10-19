@@ -84,6 +84,11 @@ export function listDocs() {
   return request({ baseURL: API_BASE, url: '/aimin-agent/agent/docs', method: 'get' })
 }
 
+// 运行状态（模型模式、知识库规模）
+export function getStatus() {
+  return request({ baseURL: API_BASE, url: '/aimin-agent/agent/status', method: 'get' })
+}
+
 // 历史会话列表
 export function listSessions(limit = 50) {
   return request({ baseURL: API_BASE, url: '/aimin-agent/agent/sessions', method: 'get', params: { limit } })
