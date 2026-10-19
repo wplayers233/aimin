@@ -62,6 +62,51 @@ const constantRoutes = [
 
 
   {
+    path: '/agent',
+    name: 'AgentWorkbench',
+    component: () => import('@/layout/index.vue'),
+    meta: {
+      title: '诊断工作台',
+      icon: 'ChatDotRound',
+      hidden: false
+    },
+    children: [
+      {
+        path: 'index',
+        name: 'AgentIndex',
+        component: () => import('@/views/agent/index.vue'),
+        meta: {
+          title: '诊断工作台',
+          icon: 'ChatDotRound',
+          hidden: false
+        }
+      },
+    ]
+  },
+  {
+    path: '/knowledge',
+    name: 'Knowledge',
+    component: () => import('@/layout/index.vue'),
+    meta: {
+      title: '知识库',
+      icon: 'Collection',
+      hidden: false
+    },
+    children: [
+      {
+        path: 'index',
+        name: 'KnowledgeIndex',
+        component: () => import('@/views/knowledge/index.vue'),
+        meta: {
+          title: '知识库管理',
+          icon: 'Collection',
+          hidden: false
+        }
+      },
+    ]
+  },
+
+  {
     path: '/login',
     name: 'Login',
     component: () => import('@/views/login/index.vue'),

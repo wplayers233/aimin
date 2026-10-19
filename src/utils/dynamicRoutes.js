@@ -16,10 +16,10 @@ const componentMap = {
   'system/role': () => import('@/views/system/role/index.vue'),
   'system/menu': () => import('@/views/system/menu/index.vue'),
 
-  // 药品管理
-  'drugs': Layout,
-  'drugs/index': () => import('@/views/drugs/drug-list/index.vue'),
-  'drugs/category': () => import('@/views/drugs/drug-category/index.vue'),
+  // 药品管理页已下线（后端 aimin-drug 依赖 ES/RabbitMQ，本地链路不可用）
+  'drugs': () => import('@/views/error/404.vue'),
+  'drugs/index': () => import('@/views/error/404.vue'),
+  'drugs/category': () => import('@/views/error/404.vue'),
 
   // 运营管理
   'operations': Layout,

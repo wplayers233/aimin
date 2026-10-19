@@ -60,9 +60,8 @@ export const useUserStore =  defineStore("user",{
         async accountLogin(loginData) {
             const resp = await login(loginData);
             const data = resp?.data;
-            this.captchaResult = data.captchaVerifyResult;
-            console.log('this.captchaResult', this.captchaResult);
-            if( data.permissions  && data.tokenValue && data.tokenName){
+            this.captchaResult = !!data?.captchaVerifyResult;
+            if (data?.permissions && data?.tokenValue && data?.tokenName) {
                 this.setTokenName(data.tokenName);
                 this.setTokenValue(data.tokenValue);
                 this.setPermissions(data.permissions);

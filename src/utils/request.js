@@ -1,5 +1,5 @@
 import axios from 'axios'
-import {ElMessage, ElMessageBox, ElNotification} from 'element-plus'
+import {ElMessage, ElNotification} from 'element-plus'
 import router from '@/router'
 import {useUserStore, useAppStore} from '@/store'
 import {h} from "vue";
@@ -38,10 +38,9 @@ service.interceptors.response.use(
       const appStore = useAppStore();
       appStore.setLoading(false);
 
-      // 处理HTTP状态码错误
-
-      handleHttpStatusError(response)
-        // 处理业务状态码错误
+      if (response.status !== 200) {
+        return handleHttpStatusError(response)
+      }
       return handleBusinessCodeError(response.data)
     },
     error => {
@@ -74,22 +73,25 @@ const handleHttpStatusError = (response) => {
 
 /**
  * 处理401未授权错误
+ * 清 token 是幂等的，但要避免并发请求弹出多个提示
  * @returns {Promise} - 返回Promise.reject
  */
+let handling401 = false
 const handle401Error = () => {
-  ElMessageBox.confirm(
-    '登录状态已失效，请重新登录',
-    '系统提示',
-    {
-      confirmButtonText: '重新登录',
-      cancelButtonText: '取消',
-      type: 'warning'
-    }
-  ).then(() => {
+  if (!handling401) {
+    handling401 = true
+    ElMessage({
+      message: '登录状态已失效，请重新登录',
+      type: 'warning',
+      duration: 3000
+    })
     // 清除token并重定向到登录页
-    useUserStore().clearLoginState();
+    useUserStore().clearLoginState()
     router.push('/login')
-  })
+    setTimeout(() => {
+      handling401 = false
+    }, 1500)
+  }
   return Promise.reject(new Error('登录状态已失效'))
 }
 
@@ -99,6 +101,10 @@ const handle401Error = () => {
  * @returns {Object|Promise} - 成功时返回响应数据,失败时返回Promise.reject
  */
 const handleBusinessCodeError = (res) => {
+  // 兼容未包装成 {code,msg,data} 的响应（例如历史接口直接返回数组）
+  if (res === null || typeof res !== 'object' || Array.isArray(res) || res.code === undefined) {
+    return res
+  }
   const message = res?.msg;
   // 业务状态码处理
   switch (res.code) {
