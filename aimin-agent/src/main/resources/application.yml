@@ -24,14 +24,32 @@ aimin:
     vector-file: ./data/agent-embeddings.json
     # 上传文档存储目录
     upload-dir: ./data/docs
+    # 文档注册表（文档元数据 + 切片文本，重启后恢复 BM25 与列表）
+    docs-file: ./data/agent-docs.json
+    # 混合检索门控：两路都低于阈值时拒答（阈值由评测集标定）
+    retrieval:
+      min-vector-score: 0.88
+      min-bm25-score: 6.5
     # 检索条数
     top-k: 5
+    # 演示知识库自动灌库（知识库为空时把目录内文档切片入库）
+    seed-kb:
+      enabled: true
+      dir: ./data/kb-demo
     # 药品库（本机 MySQL aimin 库）
     drug:
       datasource:
         url: ${MYSQL_URL:jdbc:mysql://127.0.0.1:3306/aimin?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true}
         username: ${MYSQL_USERNAME:root}
         password: ${MYSQL_PASSWORD:123456}
+
+# 离线评测（CLI）：--aimin.eval.enabled=true 时启动后跑完评测并退出
+  eval:
+    enabled: false
+    questions: ./data/eval/questions.json
+    output: ./data/eval/latest.json
+    top-k: 5
+    exit: true
 
 logging:
   level:

@@ -5,8 +5,8 @@ import com.oimc.aimin.agent.memory.SessionMemory;
 import com.oimc.aimin.agent.model.AgentEvent;
 import com.oimc.aimin.agent.model.Evidence;
 import com.oimc.aimin.agent.retrieval.DrugRetriever;
+import com.oimc.aimin.agent.retrieval.HybridRetriever;
 import com.oimc.aimin.agent.retrieval.RrfFusion;
-import com.oimc.aimin.agent.retrieval.VectorRetriever;
 import com.oimc.aimin.agent.risk.RiskEvaluator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,7 +52,7 @@ public class MedicalAgentService {
             """;
 
     private final LlmClient llm;
-    private final VectorRetriever vectorRetriever;
+    private final HybridRetriever hybridRetriever;
     private final DrugRetriever drugRetriever;
     private final RiskEvaluator riskEvaluator;
     private final SessionMemory memory;
@@ -65,13 +65,13 @@ public class MedicalAgentService {
     }
 
     public MedicalAgentService(LlmClient llm,
-                               VectorRetriever vectorRetriever,
+                               HybridRetriever hybridRetriever,
                                DrugRetriever drugRetriever,
                                RiskEvaluator riskEvaluator,
                                SessionMemory memory,
                                @Value("${aimin.agent.top-k}") int topK) {
         this.llm = llm;
-        this.vectorRetriever = vectorRetriever;
+        this.hybridRetriever = hybridRetriever;
         this.drugRetriever = drugRetriever;
         this.riskEvaluator = riskEvaluator;
         this.memory = memory;
@@ -157,12 +157,26 @@ public class MedicalAgentService {
                 }
             }
 
-            // 3. 混合检索 + RRF 融合
-            List<Evidence> vectorHits = vectorRetriever.retrieve(question, topK);
-            List<Evidence> drugHits = drugRetriever.retrieve(question, topK);
-            List<Evidence> evidence = RrfFusion.fuse(List.of(vectorHits, drugHits), topK);
+            // 3. 混合检索（向量 + BM25）与药品库，再 RRF 融合
+            List<Evidence> knowledgeHits = hybridRetriever.retrieve(question, topK);
+            List<Evidence> drugHits = drugRetriever.retrieve(question, Math.min(3, topK));
+            List<Evidence> evidence = RrfFusion.fuse(List.of(knowledgeHits, drugHits), topK);
 
             send.accept(AgentEvent.of("evidence", Map.of("items", evidence)));
+
+            // 3.1 知识库与药品库都没有可靠命中：固定拒答，不调用大模型编造
+            if (evidence.isEmpty()) {
+                String refusal = "知识库暂未收录与该问题相关的可靠资料，为避免误导，本次不作推断。"
+                        + "建议补充相关指南或药品说明书后再提问，或咨询专业医师。";
+                memory.addUser(sessionId, question);
+                for (int i = 0; i < refusal.length(); i += 3) {
+                    send.accept(AgentEvent.of("delta", Map.of("text", refusal.substring(i, Math.min(i + 3, refusal.length())))));
+                }
+                memory.addAssistant(sessionId, refusal);
+                send.accept(AgentEvent.of("done", Map.of("disclaimer", DISCLAIMER, "refused", true)));
+                finish.run();
+                return;
+            }
 
             // 4. 组装提示词
             StringBuilder ctx = new StringBuilder();
