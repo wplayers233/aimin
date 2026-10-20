@@ -11,3 +11,6 @@ dist/
 
 # 日志
 *.log
+
+# 本机离线构建配置（含绝对路径）
+.mvn-offline-settings.xml

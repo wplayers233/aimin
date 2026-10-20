@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>aimin 架构总览</title>
+<style>
+  :root{
+    --ink:#1a1a1a; --ink2:#5f5e5a; --ink3:#8a8880;
+    --line:#e3e1d9; --bg:#fbfaf6;
+    --blue-f:#e6f1fb; --blue-b:#185fa5; --blue-t:#042c53;
+    --amber-f:#faeeda; --amber-b:#854f0b; --amber-t:#412402;
+    --gray-f:#f1efe8; --gray-b:#5f5e5a; --gray-t:#2c2c2a;
+    --teal-f:#e1f5ee; --teal-b:#0f6e56; --teal-t:#04342c;
+    --purple-f:#eeedfe; --purple-b:#534ab7; --purple-t:#26215c;
+    --red-f:#fcebeb; --red-b:#a32d2d; --red-t:#501313;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; padding:36px 28px 56px;
+    background:var(--bg); color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;
+    font-size:13px; line-height:1.6;
+  }
+  .wrap{max-width:1180px;margin:0 auto}
+  header{margin-bottom:26px}
+  h1{font-size:20px;font-weight:600;margin:0 0 6px;letter-spacing:-.2px}
+  .sub{color:var(--ink2);font-size:13px}
+  .legend{display:flex;gap:18px;flex-wrap:wrap;margin-top:14px;color:var(--ink2);font-size:12px}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px;border:1px solid}
+  .lg-client i{background:var(--blue-f);border-color:var(--blue-b)}
+  .lg-gw i{background:var(--amber-f);border-color:var(--amber-b)}
+  .lg-svc i{background:var(--gray-f);border-color:var(--gray-b)}
+  .lg-agent i{background:var(--teal-f);border-color:var(--teal-b)}
+  .lg-data i{background:var(--purple-f);border-color:var(--purple-b)}
+  .lg-ext i{background:var(--red-f);border-color:var(--red-b)}
+
+  .tier{margin-bottom:0}
+  .tier-label{
+    font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--ink3);margin:0 0 8px;font-weight:600;
+  }
+  .card{
+    border:1px solid; border-radius:12px; padding:14px 16px;
+    background:#fff;
+  }
+  .card h3{margin:0 0 3px;font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px}
+  .card p{margin:0;font-size:12px;color:inherit;opacity:.82}
+  .card code{
+    font-family:ui-monospace,Consolas,monospace;font-size:11px;
+    background:rgba(255,255,255,.6);padding:0 4px;border-radius:3px;
+  }
+  .port{
+    font-family:ui-monospace,Consolas,monospace;font-size:11px;font-weight:500;
+    padding:1px 7px;border-radius:5px;border:1px solid;opacity:1;
+    background:rgba(255,255,255,.6);
+  }
+
+  .client{background:var(--blue-f);border-color:var(--blue-b);color:var(--blue-t)}
+  .gw{background:var(--amber-f);border-color:var(--amber-b);color:var(--amber-t)}
+  .admin{background:var(--gray-f);border-color:var(--gray-b);color:var(--gray-t)}
+  .agent{background:var(--teal-f);border-color:var(--teal-b);color:var(--teal-t)}
+  .auth{background:#fff;border-color:var(--line);color:var(--ink2)}
+  .data{background:var(--purple-f);border-color:var(--purple-b);color:var(--purple-t)}
+  .ext{background:var(--red-f);border-color:var(--red-b);color:var(--red-t)}
+
+  .arrow{
+    height:26px;display:flex;align-items:center;justify-content:center;
+    position:relative;color:var(--ink3);font-size:11px;
+  }
+  .arrow::before{
+    content:"";position:absolute;left:50%;top:2px;bottom:8px;width:1px;
+    background:linear-gradient(to bottom,var(--line),var(--ink3));
+  }
+  .arrow::after{
+    content:"";position:absolute;left:50%;bottom:6px;transform:translateX(-50%);
+    border-left:4px solid transparent;border-right:4px solid transparent;
+    border-top:5px solid var(--ink3);
+  }
+  .arrow span{position:relative;background:var(--bg);padding:0 8px;top:6px;font-family:ui-monospace,Consolas,monospace}
+
+  .cols{display:grid;grid-template-columns:1fr 1fr 1.15fr;gap:14px}
+  .routes{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+  .route{
+    display:flex;justify-content:space-between;gap:10px;
+    font-family:ui-monospace,Consolas,monospace;font-size:11.5px;
+    padding:5px 9px;border-radius:6px;background:rgba(255,255,255,.65);
+    border:1px solid rgba(133,79,11,.22);
+  }
+  .route b{font-weight:500}
+  .deny{color:var(--red-t);background:rgba(252,235,235,.9);border-color:rgba(163,45,45,.25)}
+
+  .pipe{
+    margin-top:14px;padding:14px 16px;border-radius:12px;
+    background:#fff;border:1px solid var(--teal-b);
+  }
+  .pipe-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px}
+  .pipe-top h3{margin:0;font-size:13px;font-weight:600;color:var(--teal-t)}
+  .pipe-top em{font-style:normal;font-size:11.5px;color:var(--ink3);font-family:ui-monospace,Consolas,monospace}
+  .steps{display:grid;grid-template-columns:repeat(5,1fr);gap:0;align-items:stretch}
+  .step{
+    position:relative;padding:9px 10px;border-radius:8px;
+    background:var(--teal-f);border:1px solid rgba(15,110,86,.45);
+    color:var(--teal-t);
+  }
+  .step b{display:block;font-size:12.5px;font-weight:600;margin-bottom:2px}
+  .step small{font-size:11px;line-height:1.45;display:block;opacity:.85}
+  .step + .step{margin-left:18px}
+  .step + .step::before{
+    content:"";position:absolute;left:-14px;top:50%;width:10px;height:1px;background:var(--teal-b);
+  }
+  .step + .step::after{
+    content:"";position:absolute;left:-5px;top:calc(50% - 3px);
+    border-top:3px solid transparent;border-bottom:3px solid transparent;
+    border-left:4px solid var(--teal-b);
+  }
+  .branch{
+    margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:10px;
+  }
+  .branch div{
+    font-size:11.5px;padding:8px 10px;border-radius:8px;
+    background:#fdfdfa;border:1px dashed rgba(15,110,86,.4);color:var(--teal-t);
+  }
+  .branch b{font-weight:600}
+
+  .bottom{display:grid;grid-template-columns:1.35fr 1fr 1fr 1fr;gap:12px}
+  .bottom .card{padding:12px 14px}
+  .kv{display:flex;flex-direction:column;gap:5px;margin-top:8px;font-size:11.5px}
+  .kv span{display:flex;justify-content:space-between;gap:10px}
+  .kv b{font-weight:500;font-family:ui-monospace,Consolas,monospace;font-size:11px;opacity:.9;flex:0 0 auto}
+  .kv em{font-style:normal;text-align:right;opacity:.78;font-size:11px}
+
+  .note{
+    margin-top:26px;padding:14px 16px;border-radius:12px;
+    background:#fff;border:1px solid var(--line);
+    font-size:12px;color:var(--ink2);
+  }
+  .note h4{margin:0 0 8px;font-size:12.5px;color:var(--ink);font-weight:600}
+  .note ul{margin:0;padding-left:18px}
+  .note li{margin:3px 0}
+  .note code{font-family:ui-monospace,Consolas,monospace;font-size:11px;background:#f4f2ea;padding:1px 5px;border-radius:4px}
+  .tag{
+    display:inline-block;font-size:10.5px;padding:0 6px;border-radius:4px;
+    border:1px solid rgba(163,45,45,.4);color:var(--red-t);background:var(--red-f);
+    margin-left:6px;vertical-align:1px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>aimin 医疗诊断 Agent 工作台 · 架构总览</h1>
+    <div class="sub">as-built 2026-10-20 · 无 Nacos 本地直连模式 · 端口以本文为准（旧文档的 8085 / 5173 已废弃）</div>
+    <div class="legend">
+      <span class="lg-client"><i></i>客户端</span>
+      <span class="lg-gw"><i></i>网关</span>
+      <span class="lg-svc"><i></i>管理服务</span>
+      <span class="lg-agent"><i></i>Agent 服务</span>
+      <span class="lg-data"><i></i>存储</span>
+      <span class="lg-ext"><i></i>外部依赖</span>
+    </div>
+  </header>
+
+  <div class="tier">
+    <div class="tier-label">Tier 1 · 客户端</div>
+    <div class="card client">
+      <h3>Vue 3 管理台 <span class="port" style="border-color:var(--blue-b)">:5174</span></h3>
+      <p>Vite 6 + Element Plus + Pinia 持久化 · 登录 / RBAC 菜单 / 知识库 / 诊断工作台 / 医院医生</p>
+      <p style="margin-top:6px;opacity:.75">axios 走 <code>VITE_API_BASE_URL</code> 直连 /aimin-admin；SSE 走 <code>/api</code> 由 Vite rewrite 去前缀 → 8080</p>
+    </div>
+  </div>
+
+  <div class="arrow"><span>HTTP · aimin-admin-token</span></div>
+
+  <div class="tier">
+    <div class="tier-label">Tier 2 · 统一入口</div>
+    <div class="card gw">
+      <h3>Spring Cloud Gateway <span class="port" style="border-color:var(--amber-b)">:8080</span></h3>
+      <p>WebFlux / Netty · <b>StrategyFactory</b> 按路径选策略 · CORS 白名单（localhost:5174）· 不做业务</p>
+      <div class="routes">
+        <div class="route"><b>/aimin-auth/public/**</b><span>放行 → 8081</span></div>
+        <div class="route"><b>/aimin-admin/public/**</b><span>放行 → 8084</span></div>
+        <div class="route"><b>/aimin-admin/**</b><span>校验 token → 8084</span></div>
+        <div class="route"><b>/aimin-agent/**</b><span>复用 admin token → 8087</span></div>
+        <div class="route deny"><b>其余路径</b><span>DenyPathStrategy 拒绝</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow"><span>直连 127.0.0.1（无 lb:// 服务发现）</span></div>
+
+  <div class="tier">
+    <div class="tier-label">Tier 3 · 服务层</div>
+    <div class="cols">
+      <div class="card auth">
+        <h3>aimin-auth <span class="port" style="border-color:var(--line)">:8081</span></h3>
+        <p>context-path <code>/aimin-auth</code></p>
+        <p style="margin-top:6px">微信 <code>code2session</code> 登录、<code>t_user_account</code>。<b>网页主流程当前不经过这里</b>。</p>
+      </div>
+      <div class="card admin">
+        <h3>aimin-admin <span class="port" style="border-color:var(--gray-b)">:8084</span></h3>
+        <p>context-path <code>/aimin-admin</code></p>
+        <p style="margin-top:6px">算术验证码登录 · Sa-Token 会话 · RBAC 动态菜单 · 科室 / 医院 / 医生 · 管理员与角色变更审计</p>
+        <p style="margin-top:6px;font-size:11.5px;opacity:.75">除 <code>/public/**</code> 全路径要求登录；<code>@SaCheckPermission(type="ADMIN")</code></p>
+      </div>
+      <div class="card agent">
+        <h3>aimin-agent <span class="port" style="border-color:var(--teal-b)">:8087</span></h3>
+        <p>context-path <code>/aimin-agent</code></p>
+        <p style="margin-top:6px">诊断编排 · 混合检索 · 风险确认 · SSE 流式 · 文档入库 · 会话审计 · 离线评测</p>
+        <p style="margin-top:6px;font-size:11.5px">不依赖 <code>aimin-common</code>，排除 <code>DataSourceAutoConfiguration</code> 自建连接；<b>服务内无鉴权</b>，只信任网关</p>
+      </div>
+    </div>
+
+    <div class="pipe">
+      <div class="pipe-top">
+        <h3>agent 内部流水线 · MedicalAgentService</h3>
+        <em>POST /agent/chat → SSE</em>
+      </div>
+      <div class="steps">
+        <div class="step"><b>准入校验</b><small>空值 / 超 2000 字拦截；问候正则短路</small></div>
+        <div class="step"><b>风险两阶段</b><small>RiskEvaluator 硬编码正则；命中发 confirmToken（5 min TTL、绑定原问题）</small></div>
+        <div class="step"><b>混合检索</b><small>向量 + BM25 → RRF；再与药品库 RRF 二次融合</small></div>
+        <div class="step"><b>门控与拒答</b><small>向量 0.88 / BM25 6.5 双低即固定拒答，不调模型</small></div>
+        <div class="step"><b>流式生成</b><small>DeepSeek 三回调 → delta；结束补剂量提示 + 免责声明</small></div>
+      </div>
+      <div class="branch">
+        <div><b>检索一阶段</b>　HybridRetriever：VectorRetriever（bge-small-zh ONNX）+ Bm25Index（K1=1.2 / B=0.75，中文 bigram）→ RRF(K=60)，各取 15 条</div>
+        <div><b>检索二阶段</b>　RrfFusion：知识命中 + DrugRetriever（t_drug 整表缓存 + BM25，药名加权）→ 统一编号 [1]..[n] 供引用</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow"><span>JDBC / 文件 / HTTPS</span></div>
+
+  <div class="tier">
+    <div class="tier-label">Tier 4 · 存储与外部依赖</div>
+    <div class="bottom">
+      <div class="card data">
+        <h3>MySQL <span class="port" style="border-color:var(--purple-b)">aimin · 19 表</span></h3>
+        <div class="kv">
+          <span><b>RBAC + 组织</b><em>admin / role / permission / department / doctor / hospital 等 9</em></span>
+          <span><b>药品</b><em>t_drug / t_drug_category / t_drug_img</em></span>
+          <span><b>Agent</b><em>t_agent_session / message / audit</em></span>
+          <span><b>其他</b><em>dict / evaluation / service / user_account</em></span>
+        </div>
+      </div>
+      <div class="card data">
+        <h3>Redis <span class="port" style="border-color:var(--purple-b)">:6379</span></h3>
+        <p style="margin-top:8px">Sa-Token 共享会话、Spring Cache、业务缓存。</p>
+        <p style="margin-top:6px;font-size:11.5px;opacity:.8">网关 / admin / auth 使用；agent 不连 Redis</p>
+      </div>
+      <div class="card data">
+        <h3>本地文件 <span class="port" style="border-color:var(--purple-b)">server/data</span></h3>
+        <p style="margin-top:8px"><code>agent-embeddings.json</code> 向量全量序列化<br>
+        <code>agent-docs.json</code> 文档注册表 + BM25 恢复<br>
+        <code>docs/</code> 上传原件 · <code>kb-demo/</code> 25 篇演示语料 · <code>eval/</code> 60 题</p>
+      </div>
+      <div class="card ext">
+        <h3>外部服务</h3>
+        <p style="margin-top:8px"><b>DeepSeek</b> <code>deepseek-chat</code>，SSE 流式；无 <code>DEEPSEEK_API_KEY</code> 时自动 Mock 演示模式</p>
+        <p style="margin-top:6px"><b>ONNX</b> bge-small-zh 本地推理，无外部调用</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">
+    <h4>图上没画、但影响部署的四件事</h4>
+    <ul>
+      <li><b>鉴权边界只有一层</b>：8087 未设 <code>server.address</code>，绕过网关直连即无鉴权<span class="tag">待修</span></li>
+      <li><b>状态仍是单机态</b>：待确认风险（Map，每会话 1 条）、验证码、SessionMemory（40 条）都在进程内，多实例会错乱<span class="tag">待修</span></li>
+      <li><b>向量库不可横向扩展</b>：InMemory + 全量 JSON 重写，`vector-store: redis` 只有配置项没有实现<span class="tag">待修</span></li>
+      <li><b>多轮上下文未生效</b>：记忆只写入与回放，组装 prompt 时只拼 evidence，历史不进 LLM<span class="tag">待修</span></li>
+    </ul>
+  </div>
+
+</div>
+</body>
+</html>
