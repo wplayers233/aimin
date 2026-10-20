@@ -1,0 +1,13 @@
+# 依赖与构建产物
+node_modules/
+target/
+dist/
+
+# 本地工具与临时目录
+.workbuddy/
+.tmp/
+.dsh/
+.dsh-progress/
+
+# 日志
+*.log
