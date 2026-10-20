@@ -21,6 +21,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
+import java.util.regex.Pattern;
 
 /**
  * 医疗 Agent 编排：意图识别 → 混合检索(RRF) → 风险评估(两阶段) → 流式生成 → 记忆写回。
@@ -41,6 +42,9 @@ public class MedicalAgentService {
 
     /** 单条提问长度上限 */
     private static final int MAX_MESSAGE_CHARS = 2_000;
+
+    /** 指代词：命中才把上一问拼进检索串（一句话说不清的指代先这样处理） */
+    private static final Pattern FOLLOW_UP = Pattern.compile("它|他|她|那|呢|这个|那个|该药|上述|继续|还有|前面");
 
     private static final String SYSTEM_PROMPT = """
             你是一个面向医疗专业人士的辅助参考助手。规则：
@@ -167,9 +171,11 @@ public class MedicalAgentService {
             }
 
             // 3. 混合检索（向量 + BM25）与药品库，再 RRF 融合
+            //    追问时把上一问拼进检索串，否则「它」在检索阶段没有指代对象
+            String retrievalQuery = buildRetrievalQuery(sessionId, question);
             long retrievalStart = System.currentTimeMillis();
-            List<Evidence> knowledgeHits = hybridRetriever.retrieve(question, topK);
-            List<Evidence> drugHits = drugRetriever.retrieve(question, Math.min(3, topK));
+            List<Evidence> knowledgeHits = hybridRetriever.retrieve(retrievalQuery, topK);
+            List<Evidence> drugHits = drugRetriever.retrieve(retrievalQuery, Math.min(3, topK));
             List<Evidence> evidence = RrfFusion.fuse(List.of(knowledgeHits, drugHits), topK);
             long retrievalCost = System.currentTimeMillis() - retrievalStart;
             log.info("检索完成 session={} 耗时={}ms 知识库={} 药品={} 融合={} 拒答={}",
@@ -202,8 +208,17 @@ public class MedicalAgentService {
                 }
                 ctx.append("）\n").append(ev.snippet()).append("\n\n");
             }
-            String userPrompt = (ctx.isEmpty() ? "【知识库未命中】\n\n" : "【参考资料】\n" + ctx + "【问题】\n")
-                    + question;
+            StringBuilder prompt = new StringBuilder();
+            prompt.append(ctx.isEmpty() ? "【知识库未命中】\n\n" : "【参考资料】\n" + ctx);
+            String historyText = recentHistory(sessionId, question);
+            if (!historyText.isEmpty()) {
+                prompt.append("【历史对话】\n").append(historyText);
+            }
+            prompt.append("【问题】\n").append(question);
+            prompt.append("\n（本次可用引用编号：[1] 至 [").append(evidence.size())
+                    .append("]，不得引用此范围外的编号）");
+            String userPrompt = prompt.toString();
+            log.info("组装完成 session={} 证据={} 历史={}字", sessionId, evidence.size(), historyText.length());
 
             if (!userRecorded) {
                 recordUser(sessionId, question);
@@ -301,6 +316,49 @@ public class MedicalAgentService {
     }
 
     // ---------- 记忆 + 落库 ----------
+
+    /**
+     * 追问的检索串 = 上一轮用户问题 + 当前问题；非追问原样返回。
+     * shortcut: 用指代词判定追问，长句省略主语时会漏判，接入 query 改写模型时升级。
+     */
+    private String buildRetrievalQuery(String sessionId, String question) {
+        if (!FOLLOW_UP.matcher(question).find()) {
+            return question;
+        }
+        List<SessionMemory.Msg> msgs = memory.history(sessionId);
+        for (int i = msgs.size() - 1; i >= 0; i--) {
+            SessionMemory.Msg m = msgs.get(i);
+            if ("user".equals(m.role()) && m.content() != null && !m.content().equals(question)) {
+                return m.content() + " " + question;
+            }
+        }
+        return question;
+    }
+
+    /**
+     * 最近 3 轮对话（6 条），助手回答截到 200 字；跳过与当前问题重复的那条
+     * （确认重入时第一阶段已写入用户消息）。
+     */
+    private String recentHistory(String sessionId, String question) {
+        List<SessionMemory.Msg> msgs = memory.history(sessionId);
+        int from = Math.max(0, msgs.size() - 6);
+        StringBuilder sb = new StringBuilder();
+        for (int i = from; i < msgs.size(); i++) {
+            SessionMemory.Msg m = msgs.get(i);
+            String text = m.content();
+            if (text == null) {
+                continue;
+            }
+            if (i == msgs.size() - 1 && text.equals(question)) {
+                continue;
+            }
+            if ("assistant".equals(m.role()) && text.length() > 200) {
+                text = text.substring(0, 200) + "…";
+            }
+            sb.append("assistant".equals(m.role()) ? "助手：" : "用户：").append(text).append('\n');
+        }
+        return sb.toString();
+    }
 
     private void recordUser(String sessionId, String content) {
         memory.addUser(sessionId, content);

@@ -46,6 +46,8 @@ public class AgentController {
     @PostMapping(value = "/chat", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter chat(@RequestBody ChatRequest request) {
         SseEmitter emitter = new SseEmitter(TimeUnit.MINUTES.toMillis(2));
+        // shortcut: 只释放 SSE 连接，不断开上游 HTTP 流，接入可取消的流式客户端时升级
+        emitter.onTimeout(emitter::complete);
         executor.submit(() -> {
             try {
                 agentService.chat(request.sessionId(), request.message(), null, emitter);
@@ -61,6 +63,8 @@ public class AgentController {
     @PostMapping(value = "/confirm", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter confirm(@RequestBody ChatRequest request) {
         SseEmitter emitter = new SseEmitter(TimeUnit.MINUTES.toMillis(2));
+        // shortcut: 只释放 SSE 连接，不断开上游 HTTP 流，接入可取消的流式客户端时升级
+        emitter.onTimeout(emitter::complete);
         executor.submit(() -> {
             try {
                 agentService.confirm(request.sessionId(), request.confirmToken(), emitter);

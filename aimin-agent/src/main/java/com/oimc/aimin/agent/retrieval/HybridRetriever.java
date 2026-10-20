@@ -18,6 +18,9 @@ public class HybridRetriever {
 
     private static final int RRF_K = 60;
 
+    /** 融合后低于最高分 60% 的条目按噪声丢弃 */
+    private static final double RELATIVE_MIN = 0.6;
+
     private final VectorRetriever vectorRetriever;
     private final Bm25Index bm25Index;
     private final double minVectorScore;
@@ -63,12 +66,19 @@ public class HybridRetriever {
 
         List<Fused> ordered = new ArrayList<>(fused.values());
         ordered.sort((a, b) -> Double.compare(b.score, a.score));
+        if (ordered.isEmpty()) {
+            return List.of();
+        }
+        double top = ordered.get(0).score;
 
         List<Evidence> result = new ArrayList<>();
         int rank = 1;
         for (Fused item : ordered) {
             if (result.size() >= topK) {
                 break;
+            }
+            if (item.score < top * RELATIVE_MIN) {
+                continue;
             }
             String type = item.sources.size() > 1 ? "hybrid" : item.sources.get(0);
             result.add(new Evidence("v" + rank++, type, item.title, item.page, item.snippet, item.score));
