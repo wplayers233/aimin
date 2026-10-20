@@ -1,0 +1,458 @@
+// ============================================
+// Aimin 医疗诊断工作台 · 全局视觉系统
+// 强调色 #0A84FF · 冷白底 · 14px 圆角 · SF/PingFang 字体栈
+// ============================================
+
+:root {
+  // ---- Element Plus 变量覆盖 ----
+  --el-color-primary: #0a84ff;
+  --el-color-primary-light-3: #4da3ff;
+  --el-color-primary-light-5: #85c1ff;
+  --el-color-primary-light-7: #b8daff;
+  --el-color-primary-light-8: #d3e8ff;
+  --el-color-primary-light-9: #eef5ff;
+  --el-color-primary-dark-2: #0869cc;
+
+  --el-color-success: #12b76a;
+  --el-color-warning: #f79009;
+  --el-color-danger: #f04438;
+  --el-color-error: #f04438;
+  --el-color-info: #667085;
+
+  --el-border-radius-base: 10px;
+  --el-border-radius-small: 8px;
+  --el-border-radius-round: 999px;
+
+  --el-text-color-primary: #1d1d1f;
+  --el-text-color-regular: #424245;
+  --el-text-color-secondary: #6e6e73;
+  --el-text-color-placeholder: #a1a1a6;
+  --el-border-color: #e3e6ec;
+  --el-border-color-light: #ececf0;
+  --el-border-color-lighter: #f2f3f7;
+  --el-fill-color-light: #f6f8fb;
+  --el-fill-color-blank: #ffffff;
+  --el-box-shadow-light: 0 12px 32px -16px rgba(16, 24, 40, 0.18);
+  --el-font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display',
+    'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', sans-serif;
+
+  // ---- Aimin 设计令牌 ----
+  --aimin-accent: #0a84ff;
+  --aimin-accent-soft: rgba(10, 132, 255, 0.1);
+  --aimin-teal: #2e9cb8;
+  --aimin-bg: #f4f6fb;
+  --aimin-bg-elevated: #fbfcfe;
+  --aimin-card: #ffffff;
+  --aimin-text: #1d1d1f;
+  --aimin-text-secondary: #6e6e73;
+  --aimin-text-tertiary: #a1a1a6;
+  --aimin-border: rgba(15, 23, 42, 0.07);
+  --aimin-border-strong: rgba(15, 23, 42, 0.12);
+  --aimin-radius-sm: 10px;
+  --aimin-radius: 14px;
+  --aimin-radius-lg: 18px;
+  --aimin-radius-xl: 24px;
+  --aimin-shadow-card: 0 1px 2px rgba(16, 24, 40, 0.04), 0 10px 28px -18px rgba(16, 24, 40, 0.18);
+  --aimin-shadow-hover: 0 2px 6px rgba(16, 24, 40, 0.06), 0 18px 40px -20px rgba(16, 24, 40, 0.28);
+  --aimin-shadow-pop: 0 24px 60px -24px rgba(16, 24, 40, 0.35);
+  --aimin-gradient-brand: linear-gradient(135deg, #0a84ff 0%, #38bdf8 100%);
+  --aimin-gradient-hero: radial-gradient(120% 140% at 0% 0%, #2f8bff 0%, #0a84ff 42%, #0b63d6 100%);
+  --aimin-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+// ---- 基础重置 ----
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-family: var(--el-font-family);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: 14px;
+  color: var(--aimin-text);
+  letter-spacing: 0.15px;
+  background: var(--aimin-bg);
+}
+
+#app {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+::selection {
+  background: rgba(10, 132, 255, 0.18);
+}
+
+// 滚动条：细、圆、悬停加深
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.16);
+  border-radius: 3px;
+  &:hover {
+    background: rgba(15, 23, 42, 0.3);
+  }
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+a {
+  text-decoration: none;
+  color: var(--aimin-accent);
+  transition: opacity 0.18s ease;
+  &:hover {
+    opacity: 0.78;
+  }
+}
+
+.clearfix::after {
+  content: '';
+  display: table;
+  clear: both;
+}
+
+// ---- 通用页面骨架 ----
+.aimin-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 100%;
+}
+
+.aimin-page-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+
+  h2 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+  }
+
+  p {
+    margin-top: 4px;
+    font-size: 13px;
+    color: var(--aimin-text-secondary);
+  }
+}
+
+.aimin-surface {
+  background: var(--aimin-card);
+  border: 1px solid var(--aimin-border);
+  border-radius: var(--aimin-radius-lg);
+  box-shadow: var(--aimin-shadow-card);
+}
+
+.aimin-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.04);
+  color: var(--aimin-text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+// ---- Element Plus 精修 ----
+
+// 按钮：轻投影 + 按压回弹
+.el-button {
+  border-radius: var(--aimin-radius-sm);
+  font-weight: 500;
+  transition: transform 0.12s ease, box-shadow 0.2s ease, background-color 0.2s ease,
+    border-color 0.2s ease;
+  &:active {
+    transform: scale(0.97);
+  }
+  &--primary {
+    box-shadow: 0 6px 16px -8px rgba(10, 132, 255, 0.7);
+    &:hover {
+      box-shadow: 0 8px 20px -8px rgba(10, 132, 255, 0.8);
+    }
+  }
+  &.is-round,
+  &.is-circle {
+    border-radius: var(--el-border-radius-round);
+  }
+}
+
+// 输入框：1px 内描边，聚焦时品牌色 + 柔光
+.el-input {
+  .el-input__wrapper {
+    border-radius: var(--aimin-radius-sm);
+    box-shadow: 0 0 0 1px var(--el-border-color) inset;
+    background: #fff;
+    transition: box-shadow 0.18s ease;
+
+    &:hover {
+      box-shadow: 0 0 0 1px var(--aimin-border-strong) inset;
+    }
+
+    &.is-focus {
+      box-shadow: 0 0 0 1px var(--aimin-accent) inset, 0 0 0 4px rgba(10, 132, 255, 0.12);
+    }
+  }
+}
+
+.el-textarea .el-textarea__inner {
+  border-radius: var(--aimin-radius-sm);
+  box-shadow: 0 0 0 1px var(--el-border-color) inset;
+  transition: box-shadow 0.18s ease;
+
+  &:hover {
+    box-shadow: 0 0 0 1px var(--aimin-border-strong) inset;
+  }
+
+  &:focus {
+    box-shadow: 0 0 0 1px var(--aimin-accent) inset, 0 0 0 4px rgba(10, 132, 255, 0.12);
+  }
+}
+
+.el-select__wrapper {
+  border-radius: var(--aimin-radius-sm);
+}
+
+// 卡片：细边 + 柔和投影，不再有厚重 hover 位移
+.el-card {
+  border-radius: var(--aimin-radius-lg);
+  border: 1px solid var(--aimin-border);
+  box-shadow: var(--aimin-shadow-card);
+  transition: box-shadow 0.25s ease, border-color 0.25s ease;
+  background: var(--aimin-card);
+
+  &:hover {
+    box-shadow: var(--aimin-shadow-hover);
+    border-color: rgba(15, 23, 42, 0.1);
+  }
+
+  .el-card__header {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--aimin-border);
+    font-weight: 600;
+    font-size: 14px;
+  }
+
+  .el-card__body {
+    padding: 16px 18px;
+  }
+}
+
+// 弹窗 / 消息框
+.el-dialog,
+.el-message-box {
+  border-radius: var(--aimin-radius-lg);
+  overflow: hidden;
+  box-shadow: var(--aimin-shadow-pop);
+}
+
+.el-dialog__header {
+  padding: 18px 20px 8px;
+  font-weight: 700;
+}
+
+.el-dialog__body {
+  padding: 8px 20px 16px;
+}
+
+.el-dialog__footer {
+  padding: 8px 20px 18px;
+}
+
+// 表格：无竖线、浅色表头、行悬停
+.el-table {
+  --el-table-header-bg-color: #f7f9fc;
+  --el-table-border-color: var(--aimin-border);
+  --el-table-row-hover-bg-color: #f5f9ff;
+  border-radius: 12px;
+  font-size: 13px;
+
+  th.el-table__cell {
+    font-weight: 600;
+    color: var(--aimin-text-secondary);
+    font-size: 12px;
+    letter-spacing: 0.4px;
+    text-transform: none;
+    padding: 10px 0;
+  }
+
+  td.el-table__cell {
+    padding: 11px 0;
+  }
+
+  .el-table__inner-wrapper::before {
+    display: none;
+  }
+}
+
+// 分页
+.el-pagination {
+  --el-pagination-button-bg-color: transparent;
+  margin-top: 14px;
+  justify-content: flex-end;
+
+  .el-pager li {
+    border-radius: 8px;
+    font-weight: 500;
+    transition: background 0.16s ease;
+  }
+
+  .el-pager li.is-active {
+    background: var(--aimin-accent-soft);
+    color: var(--aimin-accent);
+  }
+}
+
+// 标签
+.el-tag {
+  border-radius: 8px;
+  font-weight: 500;
+  border-color: transparent;
+}
+
+// 提示 / 消息
+.el-alert {
+  border-radius: var(--aimin-radius-sm);
+  border: 1px solid transparent;
+}
+
+.el-message {
+  border-radius: 12px;
+  box-shadow: var(--aimin-shadow-light);
+  border: 1px solid var(--aimin-border);
+}
+
+// 气泡
+.el-popper.is-light {
+  border-radius: 12px;
+  border: 1px solid var(--aimin-border);
+  box-shadow: var(--aimin-shadow-light);
+}
+
+.el-dropdown-menu {
+  border-radius: 12px;
+  padding: 6px;
+
+  .el-dropdown-menu__item {
+    border-radius: 8px;
+    padding: 7px 12px;
+    font-size: 13px;
+    transition: background 0.14s ease;
+
+    &:hover {
+      background: var(--aimin-accent-soft);
+      color: var(--aimin-accent);
+    }
+  }
+}
+
+// 树
+.el-tree {
+  --el-tree-node-hover-bg-color: rgba(10, 132, 255, 0.07);
+  font-size: 13px;
+
+  .el-tree-node__content {
+    height: 34px;
+    border-radius: 8px;
+    margin: 1px 0;
+  }
+
+  .el-tree-node.is-current > .el-tree-node__content {
+    background: var(--aimin-accent-soft);
+    color: var(--aimin-accent);
+    font-weight: 600;
+  }
+}
+
+// 表单
+.el-form-item__label {
+  font-weight: 500;
+  color: var(--aimin-text-secondary);
+}
+
+// 空态
+.el-empty {
+  --el-empty-padding: 32px 0;
+
+  .el-empty__description p {
+    color: var(--aimin-text-tertiary);
+    font-size: 13px;
+  }
+}
+
+// 上传拖拽区
+.el-upload-dragger {
+  border-radius: var(--aimin-radius-lg);
+  border: 1.5px dashed #c9d4e4;
+  background: linear-gradient(180deg, #fbfdff, #f5f8fd);
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    border-color: var(--aimin-accent);
+    background: #f4f9ff;
+    box-shadow: 0 0 0 4px rgba(10, 132, 255, 0.08);
+  }
+}
+
+// 开关
+.el-switch.is-checked .el-switch__core {
+  border-color: var(--aimin-accent);
+  background: var(--aimin-accent);
+}
+
+// ---- 页面过渡 ----
+.fade-transform-leave-active,
+.fade-transform-enter-active {
+  transition: opacity 0.25s ease, transform 0.25s var(--aimin-ease);
+}
+.fade-transform-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
+}
+.fade-transform-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+.app-main > * {
+  animation: page-fade-in 0.34s var(--aimin-ease) both;
+}
+
+@keyframes page-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// 减少动效偏好
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
