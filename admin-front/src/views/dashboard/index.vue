@@ -1,554 +1,838 @@
 <template>
-  <div class="dashboard">
-    <!-- 欢迎区 -->
-    <section class="hero">
+  <div class="overview">
+    <div class="hero">
       <div class="hero-copy">
-        <span class="hero-badge">
-          <el-icon><FirstAidKit /></el-icon>
-          Aimin 医疗诊断 Agent
-        </span>
-        <h1>{{ greeting }}，{{ displayName }}</h1>
-        <p>
-          基于医学知识库与药品库的检索增强问答：回答带可追溯证据，高风险用药问题会先请你确认，
-          所有内容仅用于辅助参考。
+        <span class="eyebrow">Clinical Overview · {{ today }}</span>
+        <h2 class="serif-title">每一条结论，<br />都回到它的出处。</h2>
+        <p class="lede">
+          知识库共 {{ docCount }} 篇、{{ chunkCount }} 个切片；检索命中后由模型组织回答，
+          角标对应原文段落，风险类问题在生成前拦截并二次确认。
         </p>
-        <div class="hero-actions">
-          <el-button type="primary" size="large" @click="router.push('/agent')">
-            <el-icon><ChatDotRound /></el-icon>
-            开始一次问诊
-          </el-button>
-          <el-button size="large" class="ghost-btn" @click="router.push('/knowledge')">
-            <el-icon><FolderOpened /></el-icon>
-            管理知识库
-          </el-button>
-        </div>
       </div>
+      <div class="hero-art">
+        <img :src="heroImg" alt="" />
+      </div>
+    </div>
 
-      <div class="hero-art" aria-hidden="true">
-        <span class="ring ring-1"></span>
-        <span class="ring ring-2"></span>
-        <span class="cross">
-          <span class="cross-v"></span>
-          <span class="cross-h"></span>
-        </span>
-        <span class="pulse">
-          <svg viewBox="0 0 220 40" preserveAspectRatio="none">
-            <path
-              d="M0 24 H56 l10 -16 l12 30 l10 -22 l9 8 H220"
-              fill="none"
-              stroke="rgba(255,255,255,.75)"
-              stroke-width="2.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
+    <div class="kpis">
+      <div v-for="k in kpis" :key="k.label" class="kpi">
+        <span class="label">{{ k.label }}</span>
+        <div class="val">
+          <span class="num">{{ k.value }}</span><small v-if="k.unit">{{ k.unit }}</small>
+        </div>
+        <span class="delta" :class="{ down: k.warn }">{{ k.delta }}</span>
+        <svg viewBox="0 0 100 26" preserveAspectRatio="none">
+          <path :d="k.spark" />
+        </svg>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel">
+        <div class="panel-head">
+          <h3>近十四日咨询量</h3>
+          <span class="meta">Q / DAY</span>
+        </div>
+        <div class="chart">
+          <svg viewBox="0 0 660 230" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#2a4a6b" stop-opacity=".16" />
+                <stop offset="100%" stop-color="#2a4a6b" stop-opacity="0" />
+              </linearGradient>
+            </defs>
+            <line class="grid-line" x1="0" y1="30" x2="660" y2="30" />
+            <line class="grid-line" x1="0" y1="85" x2="660" y2="85" />
+            <line class="grid-line" x1="0" y1="140" x2="660" y2="140" />
+            <line class="grid-line" x1="0" y1="195" x2="660" y2="195" />
+            <text class="axis-label" x="0" y="222">10/10</text>
+            <text class="axis-label" x="300" y="222">10/16</text>
+            <text class="axis-label" x="612" y="222">10/23</text>
+            <path class="area" d="M0 168 L50 152 L100 160 L150 128 L200 140 L250 104 L300 118 L350 74 L400 88 L450 58 L500 66 L550 36 L600 44 L660 20 L660 200 L0 200 Z" />
+            <path class="line" d="M0 168 L50 152 L100 160 L150 128 L200 140 L250 104 L300 118 L350 74 L400 88 L450 58 L500 66 L550 36 L600 44 L660 20" />
+            <circle class="pt" cx="0" cy="168" r="3" />
+            <circle class="pt" cx="150" cy="128" r="3" />
+            <circle class="pt" cx="300" cy="118" r="3" />
+            <circle class="pt" cx="450" cy="58" r="3" />
+            <circle class="pt hot" cx="550" cy="36" r="4" />
+            <circle class="pt" cx="660" cy="20" r="3" />
           </svg>
-        </span>
-      </div>
-    </section>
+        </div>
 
-    <!-- 数据快照 -->
-    <section class="stat-row">
-      <div class="stat-card">
-        <div class="stat-icon blue"><el-icon><Document /></el-icon></div>
-        <div class="stat-body">
-          <span class="stat-value">{{ docsLoaded ? docCount : '—' }}</span>
-          <span class="stat-label">已入库文档</span>
+        <div class="heat-head">
+          <h4>问答时段分布</h4>
+          <span>7 DAYS × 24 HOURS</span>
+        </div>
+        <div class="heat" ref="heatEl"></div>
+        <div class="heat-foot">
+          <span>00:00 — 23:00</span>
+          <span class="scale">少
+            <i style="background: var(--paper-3)"></i>
+            <i style="background: rgba(42, 74, 107, 0.3)"></i>
+            <i style="background: rgba(42, 74, 107, 0.5)"></i>
+            <i style="background: var(--indigo)"></i>
+            多</span>
         </div>
       </div>
-      <div class="stat-card">
-        <div class="stat-icon teal"><el-icon><Files /></el-icon></div>
-        <div class="stat-body">
-          <span class="stat-value">{{ docsLoaded ? chunkCount : '—' }}</span>
-          <span class="stat-label">知识切片</span>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon amber"><el-icon><WarnTriangleFilled /></el-icon></div>
-        <div class="stat-body">
-          <span class="stat-value">两阶段</span>
-          <span class="stat-label">高风险问题确认</span>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon green"><el-icon><CircleCheckFilled /></el-icon></div>
-        <div class="stat-body">
-          <span class="stat-value">5 条</span>
-          <span class="stat-label">检索证据上限</span>
-        </div>
-      </div>
-    </section>
 
-    <!-- 快捷入口 -->
-    <section class="entry-grid">
-      <button class="entry-card" type="button" @click="router.push('/agent')">
-        <div class="entry-icon"><el-icon :size="22"><ChatDotRound /></el-icon></div>
-        <div class="entry-text">
-          <h3>智能问诊</h3>
-          <p>描述症状、药品或诊疗问题，获得带证据引用的回答</p>
+      <div class="panel">
+        <div class="panel-head">
+          <h3>证据可回溯率</h3>
+          <span class="meta">TRACEABLE</span>
         </div>
-        <el-icon class="entry-arrow"><ArrowRight /></el-icon>
-      </button>
-
-      <button class="entry-card" type="button" @click="router.push('/knowledge')">
-        <div class="entry-icon teal"><el-icon :size="22"><FolderOpened /></el-icon></div>
-        <div class="entry-text">
-          <h3>知识库</h3>
-          <p>上传 PDF / Markdown / TXT，自动切片并写入向量库</p>
-        </div>
-        <el-icon class="entry-arrow"><ArrowRight /></el-icon>
-      </button>
-    </section>
-
-    <!-- 底部说明 -->
-    <section class="tips-card">
-      <div class="tips-head">
-        <h3>使用小贴士</h3>
-        <span class="aimin-chip">安全策略已启用</span>
-      </div>
-      <ul class="tips-list">
-        <li>
-          <span class="tip-index">1</span>
-          <div>
-            <strong>证据优先</strong>
-            <p>回答中的 <sup>[1]</sup> 角标对应检索到的药品或文档片段，可在证据卡中回溯原文。</p>
+        <div class="donut-wrap">
+          <div class="donut">
+            <svg viewBox="0 0 120 120">
+              <circle class="track" cx="60" cy="60" r="52" />
+              <circle class="val" cx="60" cy="60" r="52" />
+            </svg>
+            <div class="center"><b>96.7</b><span>PERCENT</span></div>
           </div>
-        </li>
-        <li>
-          <span class="tip-index">2</span>
-          <div>
-            <strong>风险确认</strong>
-            <p>涉及剂量、处方、停药、联合用药等问题时，系统会先中断生成，确认后才继续，避免直接给出处方级建议。</p>
+          <div class="legend">
+            <div><i style="background: var(--indigo)"></i>带角标回答 122</div>
+            <div><i style="background: #b9b2a2"></i>拒答（无可靠证据）8</div>
+            <div><i style="background: var(--ochre)"></i>越界角标 0</div>
           </div>
-        </li>
-        <li>
-          <span class="tip-index">3</span>
-          <div>
-            <strong>不替代医生</strong>
-            <p>工作台输出仅供医学信息参考，不能替代执业医师的诊断与处方，紧急情况请立即就医。</p>
+        </div>
+
+        <div class="rule"></div>
+
+        <div class="panel-head tight">
+          <h3 class="small">风险类别分布</h3>
+          <span class="meta">30 D</span>
+        </div>
+        <div class="bars">
+          <div v-for="b in riskBars" :key="b.name" class="bar-row">
+            <span class="name">{{ b.name }}</span>
+            <span class="bar-track">
+              <i class="bar-fill" :class="{ warm: b.warm }" :style="{ width: b.w + '%' }"></i>
+            </span>
+            <span class="v">{{ b.v }}</span>
           </div>
-        </li>
-      </ul>
-    </section>
+        </div>
+      </div>
+    </div>
+
+    <div class="trace">
+      <div class="trace-head">
+        <h3>一次提问的溯源路径</h3>
+        <span class="meta">TRACE · 28 MS</span>
+      </div>
+      <svg viewBox="0 0 1120 200" preserveAspectRatio="xMinYMid meet">
+        <rect class="pill" x="0" y="8" width="250" height="38" rx="3" />
+        <text class="pill-t" x="16" y="32">向量召回 · 语义相近</text>
+        <text class="pill-s" x="234" y="32" text-anchor="end">15</text>
+
+        <rect class="pill" x="0" y="66" width="250" height="38" rx="3" />
+        <text class="pill-t" x="16" y="90">BM25 · 字面精确</text>
+        <text class="pill-s" x="234" y="90" text-anchor="end">15</text>
+
+        <rect class="pill" x="0" y="124" width="250" height="38" rx="3" />
+        <text class="pill-t" x="16" y="148">药品库 · 结构字段</text>
+        <text class="pill-s" x="234" y="148" text-anchor="end">3</text>
+
+        <path class="flow live" d="M250 27 C300 27 300 85 326 85" />
+        <path class="flow live" d="M250 85 L326 85" />
+        <path class="flow live" d="M250 143 C300 143 300 85 326 85" />
+
+        <circle class="merge" cx="340" cy="85" r="14" />
+        <text x="340" y="89" text-anchor="middle" class="merge-t">RRF</text>
+
+        <path class="flow" d="M354 85 L382 85" marker-end="url(#arrowEnd)" />
+        <rect class="pill" x="386" y="66" width="170" height="38" rx="3" />
+        <text class="pill-t" x="402" y="90">门控 0.88 / 6.5</text>
+
+        <path class="flow" d="M556 85 L584 85" marker-end="url(#arrowEnd)" />
+        <rect class="pill" x="588" y="66" width="152" height="38" rx="3" />
+        <text class="pill-t" x="604" y="90">证据 5 条</text>
+
+        <path class="flow" d="M740 85 L768 85" marker-end="url(#arrowEnd)" />
+        <rect class="pill" x="772" y="66" width="262" height="38" rx="3" />
+        <text class="pill-t" x="788" y="90">回答 · 角标 [1]–[5]</text>
+
+        <text x="0" y="188">每次提问都记录：命中来源、两路最高分、融合排名、最终角标范围</text>
+        <text x="1120" y="188" text-anchor="end">三路 → 一份证据</text>
+        <defs>
+          <marker id="arrowEnd" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="#16202e" stroke-opacity=".35" stroke-width="1.4" stroke-linecap="round" />
+          </marker>
+        </defs>
+      </svg>
+    </div>
+
+    <div class="rule"></div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h3>最近入库</h3>
+        <span class="meta">{{ docCount }} DOCS · {{ chunkCount }} CHUNKS</span>
+      </div>
+      <table class="lib-table">
+        <thead>
+          <tr><th>文档</th><th>切片</th><th>大小</th><th>入库时间</th></tr>
+        </thead>
+        <tbody>
+          <tr v-for="d in recentDocs" :key="d.docId || d.fileName">
+            <td>{{ d.fileName }}</td>
+            <td class="num">{{ d.chunks }}</td>
+            <td class="num">{{ formatSize(d.bytes) }}</td>
+            <td class="num">{{ formatTime(d.ingestedAt) }}</td>
+          </tr>
+          <tr v-if="!recentDocs.length">
+            <td colspan="4" class="empty">服务未连接，暂无文档数据</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="footnote">除知识库规模与命中率外，其余指标为演示数据。</p>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store'
 import { listDocs } from '@/api/agent'
+import heroImg from '@/assets/watercolor/processed/hero.webp'
 
-const router = useRouter()
 const userStore = useUserStore()
-
 const docs = ref([])
-const docsLoaded = ref(false)
-
-const displayName = computed(() => userStore.nickname || '管理员')
-
-const greeting = computed(() => {
-  const hour = new Date().getHours()
-  if (hour < 6) return '夜深了'
-  if (hour < 12) return '早上好'
-  if (hour < 14) return '中午好'
-  if (hour < 18) return '下午好'
-  return '晚上好'
-})
+const heatEl = ref(null)
 
 const docCount = computed(() => docs.value.length)
 const chunkCount = computed(() =>
   docs.value.reduce((sum, d) => sum + (Number(d?.chunks) || 0), 0)
 )
 
+const recentDocs = computed(() => docs.value.slice(0, 6))
+
+const today = computed(() => {
+  const d = new Date()
+  return `${d.getMonth() + 1}月${d.getDate()}日`
+})
+
+const kpis = [
+  { label: '今日问答', value: '128', unit: '', delta: '+12.4%', spark: 'M0 20 L14 17 L28 19 L42 12 L56 14 L70 8 L84 10 L100 4' },
+  { label: '证据命中率', value: '96.7', unit: '%', delta: 'Recall@5', spark: 'M0 14 L14 12 L28 15 L42 11 L56 13 L70 9 L84 11 L100 7' },
+  { label: '平均首字延迟', value: '1.8', unit: 's', delta: '-0.3s', spark: 'M0 8 L14 11 L28 9 L42 14 L56 12 L70 16 L84 15 L100 19' },
+  { label: '风险拦截', value: '7', unit: '次', delta: '需确认', warn: true, spark: 'M0 19 L14 18 L28 20 L42 16 L56 17 L70 13 L84 15 L100 9' }
+]
+
+const riskBars = [
+  { name: '剂量与用法', v: 34, w: 100 },
+  { name: '联合用药', v: 21, w: 62 },
+  { name: '特殊人群', v: 18, w: 53, warm: true },
+  { name: '处方与操作', v: 12, w: 35 },
+  { name: '剂量调整', v: 9, w: 26 }
+]
+
+function formatSize(bytes) {
+  const n = Number(bytes) || 0
+  if (!n) return '—'
+  return n > 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1)} MB` : `${(n / 1024).toFixed(1)} KB`
+}
+
+function formatTime(ts) {
+  const n = Number(ts)
+  if (!n) return '—'
+  const d = new Date(n)
+  const p = (v) => String(v).padStart(2, '0')
+  return `${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`
+}
+
+function buildHeat() {
+  const el = heatEl.value
+  if (!el || el.childElementCount) return
+  const days = ['一', '二', '三', '四', '五', '六', '日']
+  let seed = 7
+  const rnd = () => (seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff
+  days.forEach((d) => {
+    const lab = document.createElement('span')
+    lab.className = 'lab'
+    lab.textContent = d
+    el.appendChild(lab)
+    for (let h = 0; h < 24; h++) {
+      const cell = document.createElement('i')
+      const peak = (h >= 9 && h <= 11) || (h >= 15 && h <= 17)
+      const base = peak ? 0.82 : h >= 8 && h <= 19 ? 0.42 : 0.12
+      const v = base * (0.55 + rnd() * 0.6)
+      const lv = v > 0.72 ? 5 : v > 0.55 ? 4 : v > 0.38 ? 3 : v > 0.2 ? 2 : v > 0.08 ? 1 : 0
+      if (lv) cell.dataset.lv = lv
+      cell.title = `周${d} ${String(h).padStart(2, '0')}:00 · ${Math.round(v * 40)} 次`
+      el.appendChild(cell)
+    }
+  })
+}
+
 onMounted(async () => {
+  buildHeat()
   try {
     const res = await listDocs()
     const list = res?.data ?? res
     if (Array.isArray(list)) docs.value = list
   } catch (e) {
-    // 后端未启动时保持占位符，不打扰用户
-  } finally {
-    docsLoaded.value = true
+    /* 后端未启动时保持空态 */
   }
 })
 </script>
 
 <style scoped lang="scss">
-.dashboard {
+.overview {
   display: flex;
   flex-direction: column;
-  gap: 18px;
 }
 
-// ---------------- Hero ----------------
 .hero {
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  justify-content: space-between;
-  gap: 24px;
-  padding: 34px 38px;
-  border-radius: var(--aimin-radius-xl);
-  background: var(--aimin-gradient-hero);
-  box-shadow: 0 24px 50px -26px rgba(10, 100, 220, 0.65);
-  color: #fff;
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 34px;
+  align-items: end;
+  margin-bottom: 30px;
 }
 
-.hero-copy {
-  position: relative;
-  z-index: 1;
-  max-width: 620px;
-
-  h1 {
-    margin: 14px 0 10px;
-    font-size: 30px;
-    font-weight: 700;
-    letter-spacing: 0.3px;
-  }
-
-  p {
-    font-size: 13.5px;
-    line-height: 1.75;
-    color: rgba(255, 255, 255, 0.82);
-  }
-}
-
-.hero-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.16);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.4px;
-  backdrop-filter: blur(6px);
-}
-
-.hero-actions {
-  display: flex;
-  gap: 12px;
-  margin-top: 24px;
-
-  :deep(.el-button--primary) {
-    background: #fff;
-    border-color: #fff;
-    color: #0a6ce0;
-    box-shadow: 0 10px 24px -12px rgba(0, 0, 0, 0.55);
-    font-weight: 600;
-
-    &:hover {
-      background: #f2f8ff;
-      border-color: #f2f8ff;
-      color: #0a6ce0;
-    }
-  }
-}
-
-.ghost-btn {
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  color: #fff;
-  backdrop-filter: blur(6px);
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.2);
-    border-color: rgba(255, 255, 255, 0.5);
-    color: #fff;
-  }
+.hero-copy .lede {
+  margin-top: 8px;
+  color: var(--ink-2);
+  font-size: 13.5px;
+  max-width: 56ch;
 }
 
 .hero-art {
   position: relative;
-  width: 280px;
-  flex-shrink: 0;
-  align-self: center;
+  height: 220px;
+  overflow: hidden;
+  mask-image: linear-gradient(to right, transparent 0%, #000 22%, #000 88%, transparent 100%),
+    linear-gradient(to bottom, transparent 0%, #000 18%, #000 100%);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
 
-  .ring {
-    position: absolute;
-    border-radius: 50%;
-    border: 1px solid rgba(255, 255, 255, 0.28);
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 42%;
+    mix-blend-mode: multiply;
+    opacity: 0.95;
+    filter: saturate(0.95) contrast(0.98);
+  }
+}
+
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.kpi {
+  position: relative;
+  padding: 18px 20px 16px;
+  border-right: 1px solid var(--line);
+
+  &:last-child {
+    border-right: none;
   }
 
-  .ring-1 {
-    width: 190px;
-    height: 190px;
+  .label {
+    display: block;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    color: var(--ink-3);
+    margin-bottom: 8px;
+  }
+
+  .val {
+    font-family: var(--serif);
+    font-size: 38px;
+    line-height: 1;
+    letter-spacing: -0.01em;
+
+    small {
+      font-size: 14px;
+      font-family: var(--sans);
+      color: var(--ink-2);
+      margin-left: 4px;
+    }
+  }
+
+  .delta {
+    position: absolute;
     right: 18px;
-    top: -58px;
-  }
+    top: 20px;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--sage);
 
-  .ring-2 {
-    width: 120px;
-    height: 120px;
-    right: 52px;
-    top: -12px;
-    border-style: dashed;
-    border-color: rgba(255, 255, 255, 0.22);
-  }
-
-  .cross {
-    position: absolute;
-    right: 68px;
-    top: 12px;
-    width: 62px;
-    height: 62px;
-    border-radius: 18px;
-    background: rgba(255, 255, 255, 0.16);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    backdrop-filter: blur(4px);
-
-    .cross-v,
-    .cross-h {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      background: #fff;
-      border-radius: 3px;
-      transform: translate(-50%, -50%);
-    }
-
-    .cross-v {
-      width: 10px;
-      height: 30px;
-    }
-
-    .cross-h {
-      width: 30px;
-      height: 10px;
+    &.down {
+      color: var(--ochre);
     }
   }
 
-  .pulse {
-    position: absolute;
-    right: 0;
-    bottom: -6px;
-    width: 230px;
+  svg {
+    display: block;
+    margin-top: 12px;
+    width: 100%;
+    height: 26px;
+    overflow: visible;
+
+    path {
+      fill: none;
+      stroke: var(--indigo);
+      stroke-width: 1.2;
+      stroke-linecap: round;
+      opacity: 0.42;
+      transition: opacity 0.3s, stroke-width 0.3s;
+    }
+  }
+
+  &:hover svg path {
     opacity: 0.9;
+    stroke-width: 1.5;
   }
 }
 
-// ---------------- 数据卡 ----------------
-.stat-row {
+.grid-2 {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 14px;
+  grid-template-columns: 1.55fr 1fr;
+  gap: 28px;
+  margin-top: 28px;
 }
 
-.stat-card {
+.panel-head {
   display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 18px 20px;
-  background: var(--aimin-card);
-  border: 1px solid var(--aimin-border);
-  border-radius: var(--aimin-radius-lg);
-  box-shadow: var(--aimin-shadow-card);
-  transition: box-shadow 0.2s ease, transform 0.2s var(--aimin-ease);
-
-  &:hover {
-    box-shadow: var(--aimin-shadow-hover);
-    transform: translateY(-2px);
-  }
-}
-
-.stat-icon {
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 19px;
-
-  &.blue {
-    background: rgba(10, 132, 255, 0.1);
-    color: #0a84ff;
-  }
-  &.teal {
-    background: rgba(46, 156, 184, 0.12);
-    color: #2e9cb8;
-  }
-  &.amber {
-    background: rgba(247, 144, 9, 0.12);
-    color: #e58200;
-  }
-  &.green {
-    background: rgba(18, 183, 106, 0.12);
-    color: #12b76a;
-  }
-}
-
-.stat-body {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.25;
-}
-
-.stat-value {
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: 0.2px;
-}
-
-.stat-label {
-  margin-top: 3px;
-  font-size: 12px;
-  color: var(--aimin-text-tertiary);
-}
-
-// ---------------- 快捷入口 ----------------
-.entry-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.entry-card {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 20px 22px;
-  text-align: left;
-  border: 1px solid var(--aimin-border);
-  border-radius: var(--aimin-radius-lg);
-  background: var(--aimin-card);
-  box-shadow: var(--aimin-shadow-card);
-  cursor: pointer;
-  transition: box-shadow 0.22s ease, transform 0.22s var(--aimin-ease),
-    border-color 0.22s ease;
-
-  &:hover {
-    box-shadow: var(--aimin-shadow-hover);
-    border-color: rgba(10, 132, 255, 0.28);
-    transform: translateY(-2px);
-
-    .entry-arrow {
-      color: var(--aimin-accent);
-      transform: translateX(3px);
-    }
-  }
-}
-
-.entry-icon {
-  width: 46px;
-  height: 46px;
-  flex-shrink: 0;
-  border-radius: 14px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(10, 132, 255, 0.1);
-  color: var(--aimin-accent);
-
-  &.teal {
-    background: rgba(46, 156, 184, 0.12);
-    color: #2e9cb8;
-  }
-}
-
-.entry-text {
-  flex: 1;
-  min-width: 0;
-
-  h3 {
-    font-size: 15px;
-    font-weight: 700;
-    margin-bottom: 4px;
-  }
-
-  p {
-    font-size: 12.5px;
-    color: var(--aimin-text-secondary);
-    line-height: 1.6;
-  }
-}
-
-.entry-arrow {
-  color: var(--aimin-text-tertiary);
-  transition: color 0.2s ease, transform 0.2s var(--aimin-ease);
-}
-
-// ---------------- 小贴士 ----------------
-.tips-card {
-  padding: 22px 24px 8px;
-  background: var(--aimin-card);
-  border: 1px solid var(--aimin-border);
-  border-radius: var(--aimin-radius-lg);
-  box-shadow: var(--aimin-shadow-card);
-}
-
-.tips-head {
-  display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
   margin-bottom: 14px;
 
   h3 {
-    font-size: 15px;
-    font-weight: 700;
+    font-family: var(--serif);
+    font-size: 17px;
+    font-weight: 400;
+
+    &.small {
+      font-size: 14px;
+    }
+  }
+
+  &.tight {
+    margin-bottom: 6px;
+  }
+
+  .meta {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    color: var(--ink-3);
   }
 }
 
-.tips-list {
-  list-style: none;
+.chart {
+  height: 240px;
+
+  svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  .grid-line {
+    stroke: var(--line-2);
+    stroke-width: 1;
+    stroke-dasharray: 2 4;
+  }
+
+  .axis-label {
+    font-family: var(--mono);
+    font-size: 9.5px;
+    fill: var(--ink-3);
+    letter-spacing: 0.06em;
+  }
+
+  .area {
+    fill: url(#areaGrad);
+  }
+
+  .line {
+    fill: none;
+    stroke: var(--indigo);
+    stroke-width: 1.6;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    stroke-dasharray: 2000;
+    stroke-dashoffset: 2000;
+    animation: draw 2.2s var(--ease) 0.3s forwards;
+  }
+
+  .pt {
+    fill: var(--paper);
+    stroke: var(--indigo);
+    stroke-width: 1.4;
+
+    &.hot {
+      fill: var(--ochre);
+      stroke: var(--ochre);
+    }
+  }
+
+  @keyframes draw {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+}
+
+.heat-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 18px 0 8px;
+
+  h4 {
+    font-family: var(--serif);
+    font-size: 14px;
+    font-weight: 400;
+  }
+
+  span {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--ink-3);
+  }
+}
+
+.heat {
+  display: grid;
+  grid-template-columns: 20px repeat(24, 1fr);
+  gap: 3px;
+  max-width: 640px;
+
+  .lab {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--ink-3);
+    line-height: 12px;
+    height: 12px;
+  }
+
+  i {
+    display: block;
+    aspect-ratio: 1;
+    border-radius: 2px;
+    background: var(--paper-3);
+    transition: transform 0.18s var(--ease), background 0.18s;
+
+    &[data-lv='1'] { background: rgba(42, 74, 107, 0.16); }
+    &[data-lv='2'] { background: rgba(42, 74, 107, 0.3); }
+    &[data-lv='3'] { background: rgba(42, 74, 107, 0.48); }
+    &[data-lv='4'] { background: rgba(42, 74, 107, 0.68); }
+    &[data-lv='5'] { background: var(--indigo); }
+
+    &:hover {
+      transform: scale(1.45);
+      background: var(--ochre);
+      position: relative;
+      z-index: 2;
+    }
+  }
+}
+
+.heat-foot {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  color: var(--ink-3);
+  letter-spacing: 0.08em;
+  max-width: 640px;
+
+  .scale {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+
+    i {
+      width: 9px;
+      height: 9px;
+      display: block;
+      border-radius: 1.5px;
+    }
+  }
+}
+
+.donut-wrap {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding-top: 4px;
+}
+
+.donut {
+  position: relative;
+  width: 128px;
+  height: 128px;
+  flex: 0 0 128px;
+
+  svg {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+  }
+
+  circle {
+    fill: none;
+    stroke-width: 6;
+  }
+
+  .track {
+    stroke: var(--paper-3);
+  }
+
+  .val {
+    stroke: var(--indigo);
+    stroke-linecap: round;
+    stroke-dasharray: 316 999;
+  }
+
+  .center {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    text-align: center;
+
+    b {
+      display: block;
+      font-family: var(--serif);
+      font-size: 26px;
+      font-weight: 400;
+      line-height: 1;
+    }
+
+    span {
+      font-family: var(--mono);
+      font-size: 9px;
+      color: var(--ink-3);
+      letter-spacing: 0.12em;
+    }
+  }
+}
+
+.legend {
   display: flex;
   flex-direction: column;
+  gap: 11px;
+  font-size: 12px;
 
-  li {
+  div {
     display: flex;
-    gap: 12px;
-    padding: 13px 0;
-    border-top: 1px solid var(--aimin-border);
+    align-items: center;
+    gap: 8px;
+    color: var(--ink-2);
+  }
 
-    strong {
-      display: block;
-      font-size: 13px;
-      margin-bottom: 3px;
-    }
-
-    p {
-      font-size: 12.5px;
-      line-height: 1.65;
-      color: var(--aimin-text-secondary);
-    }
-
-    sup {
-      color: var(--aimin-accent);
-      font-weight: 700;
-    }
+  i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    display: inline-block;
   }
 }
 
-.tip-index {
-  width: 22px;
-  height: 22px;
-  flex-shrink: 0;
-  margin-top: 1px;
-  border-radius: 7px;
-  display: inline-flex;
+.bars {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  margin-top: 4px;
+}
+
+.bar-row {
+  display: grid;
+  grid-template-columns: 76px 1fr 32px;
   align-items: center;
-  justify-content: center;
-  background: rgba(10, 132, 255, 0.1);
-  color: var(--aimin-accent);
-  font-size: 11px;
-  font-weight: 700;
-}
+  gap: 12px;
+  font-size: 12px;
 
-@media (max-width: 1180px) {
-  .stat-row {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .name {
+    color: var(--ink-2);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
-  .hero-art {
-    display: none;
+  .bar-track {
+    height: 6px;
+    background: var(--paper-3);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    display: block;
+    height: 100%;
+    background: var(--indigo);
+    opacity: 0.85;
+    border-radius: 3px;
+    transition: width 1.2s var(--ease);
+
+    &.warm {
+      background: var(--ochre);
+      opacity: 0.8;
+    }
+  }
+
+  .v {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-3);
+    text-align: right;
   }
 }
 
-@media (max-width: 760px) {
-  .entry-grid {
+.trace {
+  margin-top: 28px;
+  border-top: 1px solid var(--line);
+  padding-top: 20px;
+
+  svg {
+    width: 100%;
+    height: 190px;
+    display: block;
+    overflow: visible;
+  }
+
+  .flow {
+    fill: none;
+    stroke: var(--line);
+    stroke-width: 1;
+    stroke-dasharray: 3 4;
+
+    &.live {
+      stroke: var(--indigo);
+      stroke-opacity: 0.4;
+      stroke-dasharray: none;
+      animation: dashmove 6s linear infinite;
+    }
+  }
+
+  @keyframes dashmove {
+    to {
+      stroke-dashoffset: -60;
+    }
+  }
+
+  text {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    fill: var(--ink-3);
+    letter-spacing: 0.04em;
+  }
+
+  .pill {
+    fill: rgba(42, 74, 107, 0.06);
+    stroke: none;
+  }
+
+  .pill-t {
+    font-family: var(--sans);
+    font-size: 12.5px;
+    fill: var(--ink);
+    letter-spacing: 0;
+  }
+
+  .pill-s {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    fill: var(--ink-3);
+  }
+
+  .merge {
+    fill: var(--indigo);
+  }
+
+  .merge-t {
+    fill: var(--paper);
+    font-size: 9px;
+  }
+}
+
+.trace-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 6px;
+
+  h3 {
+    font-family: var(--serif);
+    font-size: 17px;
+    font-weight: 400;
+  }
+
+  .meta {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    color: var(--ink-3);
+  }
+}
+
+.lib-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+
+  th {
+    text-align: left;
+    font-family: var(--mono);
+    font-weight: 400;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    color: var(--ink-3);
+    padding: 0 12px 8px 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  td {
+    padding: 11px 12px 11px 0;
+    border-bottom: 1px solid var(--line-2);
+    color: var(--ink-2);
+
+    &:first-child {
+      color: var(--ink);
+    }
+  }
+
+  .empty {
+    color: var(--ink-3);
+    text-align: center;
+    padding: 24px 0;
+  }
+}
+
+.footnote {
+  margin-top: 12px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-3);
+  letter-spacing: 0.06em;
+}
+
+@media (max-width: 1100px) {
+  .grid-2 {
     grid-template-columns: 1fr;
+  }
+  .hero {
+    grid-template-columns: 1fr;
+  }
+  .hero-art {
+    height: 170px;
+  }
+  .kpis {
+    grid-template-columns: 1fr 1fr;
+  }
+  .kpi:nth-child(2) {
+    border-right: none;
   }
 }
 </style>

@@ -1,49 +1,67 @@
 <template>
-  <div class="knowledge-page">
-    <header class="page-head">
-      <div>
-        <h2>知识文档</h2>
-        <p>上传医学资料后，Agent 会在回答时检索其中片段并标注来源。</p>
-      </div>
-      <div class="head-stats">
-        <span class="aimin-chip">{{ docs.length }} 篇文档</span>
-        <span class="aimin-chip">{{ totalChunks }} 个切片</span>
-      </div>
-    </header>
+  <div class="library">
+    <span class="eyebrow">Knowledge Base</span>
+    <h2 class="serif-title">知识库</h2>
+    <p class="lede">
+      入库后自动切分、向量化并建立词法索引；同一份文档的切片共享页码与章节信息，便于引用回溯。
+    </p>
 
-    <div class="upload-card">
-      <h3>知识文档入库</h3>
-      <p class="hint">支持 PDF / MD / TXT · 自动按章节切片 + 向量化（bge-small-zh 本地模型）</p>
+    <div class="lib-grid">
       <el-upload
         drag
+        class="drop"
         :auto-upload="false"
         :show-file-list="false"
         accept=".pdf,.md,.txt"
         :on-change="handleFile"
       >
-        <el-icon :size="40" class="upload-icon"><UploadFilled /></el-icon>
-        <div class="el-upload__text">拖拽文件到这里，或 <em>点击选择</em></div>
+        <img class="still" :src="stillImg" alt="" />
+        <div class="drop-inner">
+          <b>拖拽文档到此处</b>
+          <span>支持 PDF / Markdown / TXT，单文件不超过 50MB</span>
+          <em>SELECT OR DROP</em>
+        </div>
       </el-upload>
-      <el-alert v-if="uploading" title="正在入库（切片 + 向量化）…" type="info" :closable="false" class="upload-tip" />
-      <el-alert v-else-if="lastResult" :title="lastResult" :type="lastOk ? 'success' : 'error'" :closable="true" class="upload-tip" />
+
+      <div class="stats">
+        <div class="stat-line"><span>文档总数</span><b>{{ docs.length }}</b></div>
+        <div class="stat-line"><span>切片总数</span><b>{{ totalChunks }}</b></div>
+        <div class="stat-line"><span>向量维度</span><b>512</b></div>
+        <div class="stat-line"><span>词法索引</span><b>BM25 · bigram</b></div>
+        <div class="stat-line"><span>最近入库</span><b>{{ lastIngest }}</b></div>
+        <div v-if="uploading" class="note">正在入库（切片 + 向量化）…</div>
+        <div v-else-if="lastResult" class="note" :class="{ err: !lastOk }">{{ lastResult }}</div>
+      </div>
     </div>
 
-    <div class="list-card">
-      <div class="card-head">
-        <h3>已入库文档</h3>
-        <el-button text type="primary" size="small" @click="refresh">刷新</el-button>
-      </div>
-      <el-table :data="docs" style="width: 100%" empty-text="暂无文档，先上传一份吧">
-        <el-table-column prop="fileName" label="文件名" min-width="200" />
-        <el-table-column prop="chunks" label="切片数" width="100" />
-        <el-table-column label="大小" width="110">
-          <template #default="{ row }">{{ (row.bytes / 1024).toFixed(1) }} KB</template>
-        </el-table-column>
-        <el-table-column label="入库时间" width="170">
-          <template #default="{ row }">{{ new Date(row.ingestedAt).toLocaleString() }}</template>
-        </el-table-column>
-      </el-table>
+    <div class="rule"></div>
+
+    <div class="panel-head">
+      <h3>全部文档</h3>
+      <button class="refresh" @click="refresh">刷新</button>
     </div>
+
+    <table class="lib-table">
+      <thead>
+        <tr>
+          <th>名称</th>
+          <th>切片</th>
+          <th>大小</th>
+          <th>入库</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="d in docs" :key="d.docId || d.fileName">
+          <td>{{ d.fileName }}</td>
+          <td class="num">{{ d.chunks }}</td>
+          <td class="num">{{ (Number(d.bytes || 0) / 1024).toFixed(1) }} KB</td>
+          <td class="num">{{ formatTime(d.ingestedAt) }}</td>
+        </tr>
+        <tr v-if="!docs.length">
+          <td colspan="4" class="empty">暂无文档，先上传一份</td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </template>
 
@@ -51,6 +69,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { uploadDoc, listDocs } from '@/api/agent'
+import stillImg from '@/assets/watercolor/processed/still.webp'
 
 const docs = ref([])
 const uploading = ref(false)
@@ -60,6 +79,19 @@ const lastOk = ref(false)
 const totalChunks = computed(() =>
   docs.value.reduce((sum, d) => sum + (Number(d?.chunks) || 0), 0)
 )
+
+const lastIngest = computed(() => {
+  const ts = docs.value[0]?.ingestedAt
+  return ts ? formatTime(ts) : '—'
+})
+
+function formatTime(ts) {
+  const n = Number(ts)
+  if (!n) return '—'
+  const d = new Date(n)
+  const p = (v) => String(v).padStart(2, '0')
+  return `${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`
+}
 
 async function refresh() {
   try {
@@ -99,112 +131,175 @@ async function handleFile(file) {
 onMounted(refresh)
 </script>
 
-<style lang="scss" scoped>
-.knowledge-page {
+<style scoped lang="scss">
+.library {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  min-height: 100%;
-}
 
-.page-head {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 2px 2px 0;
-
-  h2 {
-    font-size: 20px;
-    font-weight: 700;
-    letter-spacing: 0.2px;
-  }
-
-  p {
-    margin-top: 5px;
-    font-size: 12.5px;
-    color: var(--aimin-text-secondary, #6e6e73);
+  .lede {
+    margin-top: 6px;
+    color: var(--ink-2);
+    font-size: 13.5px;
+    max-width: 760px;
   }
 }
 
-.head-stats {
-  display: flex;
-  gap: 8px;
-  flex-shrink: 0;
+.lib-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 34px;
+  margin-top: 26px;
 }
 
-.upload-card,
-.list-card {
-  background: var(--aimin-card, #fff);
-  border: 1px solid var(--aimin-border, rgba(15, 23, 42, 0.07));
-  border-radius: var(--aimin-radius-lg, 18px);
-  padding: 20px 22px;
-  box-shadow: var(--aimin-shadow-card, 0 4px 24px rgba(0, 0, 0, 0.06));
+.drop {
+  position: relative;
 
-  h3 {
-    margin: 0 0 6px;
-    font-size: 15px;
-    font-weight: 700;
-  }
-}
-
-.card-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 6px;
-
-  h3 {
-    margin: 0;
-  }
-}
-
-.hint {
-  font-size: 12px;
-  color: var(--aimin-text-secondary, #6e6e73);
-  margin-bottom: 14px;
-}
-
-.upload-tip {
-  margin-top: 12px;
-}
-
-.upload-card :deep(.el-upload-dragger) {
-  border-radius: 14px;
-  border-color: rgba(10, 132, 255, 0.28);
-  background: linear-gradient(180deg, rgba(10, 132, 255, 0.04), rgba(10, 132, 255, 0.01));
-  transition: border-color 0.2s ease, background 0.2s ease;
-
-  &:hover {
-    border-color: var(--aimin-primary, #0a84ff);
-    background: rgba(10, 132, 255, 0.06);
+  :deep(.el-upload) {
+    width: 100%;
   }
 
-  .upload-icon {
-    color: var(--aimin-primary, #0a84ff);
-    margin-bottom: 10px;
+  :deep(.el-upload-dragger) {
+    height: 196px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    position: relative;
+    overflow: hidden;
   }
 
-  .el-icon--upload {
-    color: var(--aimin-primary, #0a84ff);
-    font-size: 44px;
-    margin-bottom: 10px;
+  .still {
+    position: absolute;
+    right: -24px;
+    bottom: -40px;
+    width: 190px;
+    opacity: 0.55;
+    mix-blend-mode: multiply;
+    pointer-events: none;
   }
 
-  .el-upload__text {
-    color: var(--aimin-text-secondary, #6e6e73);
-    font-size: 13px;
+  .drop-inner {
+    position: relative;
+    text-align: center;
+
+    b {
+      display: block;
+      font-family: var(--serif);
+      font-size: 16px;
+      font-weight: 400;
+      margin-bottom: 4px;
+    }
+
+    span {
+      font-size: 12px;
+      color: var(--ink-3);
+    }
 
     em {
-      color: var(--aimin-primary, #0a84ff);
+      display: block;
+      margin-top: 12px;
       font-style: normal;
-      font-weight: 600;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      color: var(--ochre);
     }
   }
 }
 
-.list-card {
-  flex: 1;
-  overflow: auto;
+.stats {
+  .stat-line {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--line-2);
+    font-size: 12.5px;
+
+    span {
+      color: var(--ink-2);
+    }
+
+    b {
+      font-family: var(--mono);
+      font-weight: 400;
+      color: var(--ink);
+    }
+  }
+
+  .note {
+    margin-top: 14px;
+    font-size: 12px;
+    color: var(--sage);
+
+    &.err {
+      color: var(--ochre);
+    }
+  }
+}
+
+.panel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 12px;
+
+  h3 {
+    font-family: var(--serif);
+    font-size: 17px;
+    font-weight: 400;
+  }
+
+  .refresh {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    color: var(--ink-3);
+    border-bottom: 1px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+
+    &:hover {
+      color: var(--ink);
+      border-bottom-color: var(--ink);
+    }
+  }
+}
+
+.lib-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+
+  th {
+    text-align: left;
+    font-family: var(--mono);
+    font-weight: 400;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    color: var(--ink-3);
+    padding: 0 12px 8px 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  td {
+    padding: 11px 12px 11px 0;
+    border-bottom: 1px solid var(--line-2);
+    color: var(--ink-2);
+
+    &:first-child {
+      color: var(--ink);
+    }
+  }
+
+  .empty {
+    text-align: center;
+    color: var(--ink-3);
+    padding: 26px 0;
+  }
+}
+
+@media (max-width: 1000px) {
+  .lib-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

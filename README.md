@@ -102,6 +102,15 @@ npm run dev     # http://localhost:5174
 
 登录：`admin / 123456`（验证码为本地算术题，点题面可刷新）。
 
+> **Windows 中文用户名路径报错**：若 `npm run dev` 抛
+> `Cannot read file "package.json": winapi error #5`，是 esbuild 在非 ASCII 路径下的已知问题。
+> 把 `admin-front` 整个目录（含 `node_modules`）复制到纯英文路径（如 `C:\aimin-front`）后运行即可，
+> 目录联接（junction）无效，必须实体复制。
+
+界面采用「临床图谱」视觉语言：纸感底色、墨蓝与朱砂、宋体标题、水彩解剖插图。
+水彩素材由 `admin-front/scripts/watercolor.py` 生成（OpenCV 去底、裁水印、统一纸色），
+设计原型见 `admin-front/design/prototype.html`。
+
 ## 配置
 
 | 变量 | 作用 | 默认 |
