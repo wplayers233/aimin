@@ -63,7 +63,17 @@
           <h4>问答时段分布</h4>
           <span>7 DAYS × 24 HOURS</span>
         </div>
-        <div class="heat" ref="heatEl"></div>
+        <div class="heat">
+          <template v-for="row in heatRows" :key="row.day">
+            <span class="lab">{{ row.day }}</span>
+            <i
+              v-for="(lv, i) in row.cells"
+              :key="i"
+              :data-lv="lv || null"
+              :title="row.day + ' ' + String(i).padStart(2, '0') + ':00'"
+            ></i>
+          </template>
+        </div>
         <div class="heat-foot">
           <span>00:00 — 23:00</span>
           <span class="scale">少
@@ -196,7 +206,6 @@ import heroImg from '@/assets/watercolor/processed/hero.webp'
 
 const userStore = useUserStore()
 const docs = ref([])
-const heatEl = ref(null)
 
 const docCount = computed(() => docs.value.length)
 const chunkCount = computed(() =>
@@ -239,32 +248,22 @@ function formatTime(ts) {
   return `${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`
 }
 
-function buildHeat() {
-  const el = heatEl.value
-  if (!el || el.childElementCount) return
+const heatRows = computed(() => {
   const days = ['一', '二', '三', '四', '五', '六', '日']
   let seed = 7
   const rnd = () => (seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff
-  days.forEach((d) => {
-    const lab = document.createElement('span')
-    lab.className = 'lab'
-    lab.textContent = d
-    el.appendChild(lab)
-    for (let h = 0; h < 24; h++) {
-      const cell = document.createElement('i')
+  return days.map((day) => ({
+    day,
+    cells: Array.from({ length: 24 }, (_, h) => {
       const peak = (h >= 9 && h <= 11) || (h >= 15 && h <= 17)
       const base = peak ? 0.82 : h >= 8 && h <= 19 ? 0.42 : 0.12
       const v = base * (0.55 + rnd() * 0.6)
-      const lv = v > 0.72 ? 5 : v > 0.55 ? 4 : v > 0.38 ? 3 : v > 0.2 ? 2 : v > 0.08 ? 1 : 0
-      if (lv) cell.dataset.lv = lv
-      cell.title = `周${d} ${String(h).padStart(2, '0')}:00 · ${Math.round(v * 40)} 次`
-      el.appendChild(cell)
-    }
-  })
-}
+      return v > 0.72 ? 5 : v > 0.55 ? 4 : v > 0.38 ? 3 : v > 0.2 ? 2 : v > 0.08 ? 1 : 0
+    })
+  }))
+})
 
 onMounted(async () => {
-  buildHeat()
   try {
     const res = await listDocs()
     const list = res?.data ?? res
