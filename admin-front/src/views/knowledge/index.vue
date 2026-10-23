@@ -20,6 +20,7 @@
           <b>拖拽文档到此处</b>
           <span>支持 PDF / Markdown / TXT，单文件不超过 50MB</span>
           <em>SELECT OR DROP</em>
+          <span class="cta">选择文件</span>
         </div>
       </el-upload>
 
@@ -29,6 +30,16 @@
         <div class="stat-line"><span>向量维度</span><b>512</b></div>
         <div class="stat-line"><span>词法索引</span><b>BM25 · bigram</b></div>
         <div class="stat-line"><span>最近入库</span><b>{{ lastIngest }}</b></div>
+        <div class="dist" v-if="totalChunks">
+          <i
+            v-for="(d, i) in docs"
+            :key="d.docId || d.fileName"
+            :style="{ width: pct(d) + '%', background: palette[i % palette.length] }"
+            :title="d.fileName + ' · ' + d.chunks + ' 片'"
+          ></i>
+        </div>
+        <div class="dist-legend" v-if="totalChunks">切片占比 · {{ docs.length }} 份文档</div>
+
         <div v-if="uploading" class="note">正在入库（切片 + 向量化）…</div>
         <div v-else-if="lastResult" class="note" :class="{ err: !lastOk }">{{ lastResult }}</div>
       </div>
@@ -46,6 +57,7 @@
         <tr>
           <th>名称</th>
           <th>切片</th>
+          <th>占比</th>
           <th>大小</th>
           <th>入库</th>
         </tr>
@@ -54,11 +66,12 @@
         <tr v-for="d in docs" :key="d.docId || d.fileName">
           <td>{{ d.fileName }}</td>
           <td class="num">{{ d.chunks }}</td>
+          <td><span class="mini"><i :style="{ width: pct(d) + '%' }"></i></span></td>
           <td class="num">{{ (Number(d.bytes || 0) / 1024).toFixed(1) }} KB</td>
           <td class="num">{{ formatTime(d.ingestedAt) }}</td>
         </tr>
         <tr v-if="!docs.length">
-          <td colspan="4" class="empty">暂无文档，先上传一份</td>
+          <td colspan="5" class="empty">暂无文档，先上传一份</td>
         </tr>
       </tbody>
     </table>
@@ -79,6 +92,13 @@ const lastOk = ref(false)
 const totalChunks = computed(() =>
   docs.value.reduce((sum, d) => sum + (Number(d?.chunks) || 0), 0)
 )
+
+const palette = ['#24415f', '#4f7358', '#a8792c', '#a9491f', '#8a4b52', '#35587a']
+
+const pct = (d) => {
+  const total = totalChunks.value || 1
+  return Math.max(4, ((Number(d?.chunks) || 0) / total) * 100)
+}
 
 const lastIngest = computed(() => {
   const ts = docs.value[0]?.ingestedAt
@@ -158,6 +178,12 @@ onMounted(refresh)
     width: 100%;
   }
 
+  &:hover .cta {
+    background: var(--ochre);
+    border-color: var(--ochre);
+    transform: translateY(-1px);
+  }
+
   :deep(.el-upload-dragger) {
     height: 196px;
     display: flex;
@@ -195,9 +221,22 @@ onMounted(refresh)
       color: var(--ink-3);
     }
 
+    .cta {
+      display: inline-block;
+      margin-top: 14px;
+      padding: 6px 16px;
+      border: 1px solid var(--ink);
+      border-radius: 2px;
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      color: var(--paper);
+      background: var(--ink);
+      transition: background 0.25s, transform 0.3s var(--ease);
+    }
+
     em {
       display: block;
-      margin-top: 12px;
+      margin-top: 10px;
       font-style: normal;
       font-family: var(--mono);
       font-size: 10px;
@@ -224,6 +263,29 @@ onMounted(refresh)
       font-weight: 400;
       color: var(--ink);
     }
+  }
+
+  .dist {
+    display: flex;
+    gap: 2px;
+    height: 6px;
+    margin-top: 14px;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .dist i {
+    display: block;
+    height: 100%;
+    transition: width 0.8s var(--ease);
+  }
+
+  .dist-legend {
+    margin-top: 6px;
+    font-family: var(--mono);
+    font-size: 9.5px;
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
   }
 
   .note {
@@ -290,6 +352,24 @@ onMounted(refresh)
     }
   }
 
+  .mini {
+    display: block;
+    width: 84px;
+    height: 5px;
+    background: var(--paper-3);
+    border-radius: 3px;
+    overflow: hidden;
+
+    i {
+      display: block;
+      height: 100%;
+      background: var(--indigo);
+      opacity: 0.75;
+      border-radius: 3px;
+      transition: width 0.8s var(--ease);
+    }
+  }
+
   .empty {
     text-align: center;
     color: var(--ink-3);
@@ -302,4 +382,64 @@ onMounted(refresh)
     grid-template-columns: 1fr;
   }
 }
+
+/* ---- 交互增强 ---- */
+.drop :deep(.el-upload-dragger) {
+  transition: border-color 0.35s var(--ease), background 0.35s;
+}
+
+.drop .still {
+  transition: transform 0.7s var(--ease);
+}
+
+.drop:hover .still {
+  transform: translate(-6px, -6px) scale(1.06) rotate(-1deg);
+}
+
+.drop .drop-inner em {
+  transition: letter-spacing 0.35s var(--ease);
+}
+
+.drop:hover .drop-inner em {
+  letter-spacing: 0.22em;
+}
+
+.stat-line {
+  transition: background 0.25s, padding-left 0.25s var(--ease);
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.2);
+    padding-left: 6px;
+  }
+}
+
+.lib-table tbody tr {
+  transition: background 0.2s, box-shadow 0.2s;
+
+  &:hover {
+    box-shadow: inset 2px 0 0 var(--ochre);
+  }
+}
+
+.panel-head .refresh {
+  transition: color 0.2s, border-color 0.2s, transform 0.4s var(--ease);
+
+  &:active {
+    transform: rotate(180deg);
+  }
+}
+
+
+/* ---- 色彩层次收尾 ---- */
+.panel-head h3::before {
+  content: '';
+  display: inline-block;
+  width: 3px;
+  height: 13px;
+  background: var(--ochre);
+  margin-right: 9px;
+  vertical-align: -1px;
+  opacity: 0.85;
+}
+
 </style>

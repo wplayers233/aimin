@@ -15,10 +15,10 @@
     </div>
 
     <div class="kpis">
-      <div v-for="k in kpis" :key="k.label" class="kpi">
+      <div v-for="k in kpis" :key="k.label" class="kpi" :class="`tone-${k.tone}`">
         <span class="label">{{ k.label }}</span>
         <div class="val">
-          <span class="num">{{ k.value }}</span><small v-if="k.unit">{{ k.unit }}</small>
+          <span class="num" :data-count="k.value" :data-dec="k.dec || 0">0</span><small v-if="k.unit">{{ k.unit }}</small>
         </div>
         <span class="delta" :class="{ down: k.warn }">{{ k.delta }}</span>
         <svg viewBox="0 0 100 26" preserveAspectRatio="none">
@@ -33,7 +33,7 @@
           <h3>近十四日咨询量</h3>
           <span class="meta">Q / DAY</span>
         </div>
-        <div class="chart">
+        <div class="chart" @mousemove="onChartMove" @mouseleave="hoverIdx = -1">
           <svg viewBox="0 0 660 230" preserveAspectRatio="none">
             <defs>
               <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
@@ -50,13 +50,27 @@
             <text class="axis-label" x="612" y="222">10/23</text>
             <path class="area" d="M0 168 L50 152 L100 160 L150 128 L200 140 L250 104 L300 118 L350 74 L400 88 L450 58 L500 66 L550 36 L600 44 L660 20 L660 200 L0 200 Z" />
             <path class="line" d="M0 168 L50 152 L100 160 L150 128 L200 140 L250 104 L300 118 L350 74 L400 88 L450 58 L500 66 L550 36 L600 44 L660 20" />
-            <circle class="pt" cx="0" cy="168" r="3" />
-            <circle class="pt" cx="150" cy="128" r="3" />
-            <circle class="pt" cx="300" cy="118" r="3" />
-            <circle class="pt" cx="450" cy="58" r="3" />
-            <circle class="pt hot" cx="550" cy="36" r="4" />
-            <circle class="pt" cx="660" cy="20" r="3" />
+            <line
+              v-if="hoverIdx >= 0"
+              class="crosshair"
+              :x1="points[hoverIdx].x"
+              :x2="points[hoverIdx].x"
+              y1="16"
+              y2="200"
+            />
+            <circle
+              v-for="(p, i) in points"
+              :key="i"
+              class="pt"
+              :class="{ hot: i === hoverIdx || i === hotIdx }"
+              :cx="p.x"
+              :cy="p.y"
+              :r="i === hoverIdx ? 4.5 : 3"
+            />
           </svg>
+          <div v-if="hoverIdx >= 0" class="tip" :style="{ left: tipLeft, top: tipTop }">
+            {{ points[hoverIdx].date }} · {{ points[hoverIdx].v }} 次
+          </div>
         </div>
 
         <div class="heat-head">
@@ -202,7 +216,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useUserStore } from '@/store'
 import { listDocs } from '@/api/agent'
-import heroImg from '@/assets/watercolor/processed/hero.webp'
+import heroImg from '@/assets/watercolor/processed/hero-bust.webp'
 
 const userStore = useUserStore()
 const docs = ref([])
@@ -220,11 +234,71 @@ const today = computed(() => {
 })
 
 const kpis = [
-  { label: '今日问答', value: '128', unit: '', delta: '+12.4%', spark: 'M0 20 L14 17 L28 19 L42 12 L56 14 L70 8 L84 10 L100 4' },
-  { label: '证据命中率', value: '96.7', unit: '%', delta: 'Recall@5', spark: 'M0 14 L14 12 L28 15 L42 11 L56 13 L70 9 L84 11 L100 7' },
-  { label: '平均首字延迟', value: '1.8', unit: 's', delta: '-0.3s', spark: 'M0 8 L14 11 L28 9 L42 14 L56 12 L70 16 L84 15 L100 19' },
-  { label: '风险拦截', value: '7', unit: '次', delta: '需确认', warn: true, spark: 'M0 19 L14 18 L28 20 L42 16 L56 17 L70 13 L84 15 L100 9' }
+  { label: '今日问答', value: 128, unit: '', delta: '+12.4%', tone: 'indigo', spark: 'M0 20 L14 17 L28 19 L42 12 L56 14 L70 8 L84 10 L100 4' },
+  { label: '证据命中率', value: 96.7, dec: 1, unit: '%', delta: 'Recall@5', tone: 'sage', spark: 'M0 14 L14 12 L28 15 L42 11 L56 13 L70 9 L84 11 L100 7' },
+  { label: '平均首字延迟', value: 1.8, dec: 1, unit: 's', delta: '-0.3s', tone: 'gold', spark: 'M0 8 L14 11 L28 9 L42 14 L56 12 L70 16 L84 15 L100 19' },
+  { label: '风险拦截', value: 7, unit: '次', delta: '需确认', warn: true, tone: 'rose', spark: 'M0 19 L14 18 L28 20 L42 16 L56 17 L70 13 L84 15 L100 9' }
 ]
+
+const points = [
+  { x: 0, y: 168, v: 62, date: '10/10' },
+  { x: 50, y: 152, v: 71, date: '10/11' },
+  { x: 100, y: 160, v: 68, date: '10/12' },
+  { x: 150, y: 128, v: 84, date: '10/13' },
+  { x: 200, y: 140, v: 79, date: '10/14' },
+  { x: 250, y: 104, v: 92, date: '10/15' },
+  { x: 300, y: 118, v: 88, date: '10/16' },
+  { x: 350, y: 74, v: 103, date: '10/17' },
+  { x: 400, y: 88, v: 97, date: '10/18' },
+  { x: 450, y: 58, v: 112, date: '10/19' },
+  { x: 500, y: 66, v: 108, date: '10/20' },
+  { x: 550, y: 36, v: 121, date: '10/21' },
+  { x: 600, y: 44, v: 117, date: '10/22' },
+  { x: 660, y: 20, v: 128, date: '10/23' }
+]
+
+const hoverIdx = ref(-1)
+const hotIdx = 11
+const tipLeft = computed(() => (hoverIdx.value >= 0 ? (points[hoverIdx.value].x / 660) * 100 + '%' : '0'))
+const tipTop = computed(() => (hoverIdx.value >= 0 ? (points[hoverIdx.value].y / 230) * 100 - 12 + '%' : '0'))
+
+function onChartMove(e) {
+  const svg = e.currentTarget.querySelector('svg')
+  if (!svg) return
+  const rect = svg.getBoundingClientRect()
+  const ratio = (e.clientX - rect.left) / rect.width
+  const x = ratio * 660
+  let best = 0
+  let min = Infinity
+  points.forEach((p, i) => {
+    const d = Math.abs(p.x - x)
+    if (d < min) {
+      min = d
+      best = i
+    }
+  })
+  hoverIdx.value = best
+}
+
+function runCounters() {
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  document.querySelectorAll('[data-count]').forEach((el) => {
+    const target = parseFloat(el.dataset.count)
+    const dec = parseInt(el.dataset.dec || '0', 10)
+    if (reduce) {
+      el.textContent = target.toFixed(dec)
+      return
+    }
+    const t0 = performance.now()
+    const dur = 1100
+    const tick = (t) => {
+      const p = Math.min(1, (t - t0) / dur)
+      el.textContent = (target * (1 - Math.pow(1 - p, 3))).toFixed(dec)
+      if (p < 1) requestAnimationFrame(tick)
+    }
+    requestAnimationFrame(tick)
+  })
+}
 
 const riskBars = [
   { name: '剂量与用法', v: 34, w: 100 },
@@ -264,6 +338,7 @@ const heatRows = computed(() => {
 })
 
 onMounted(async () => {
+  runCounters()
   try {
     const res = await listDocs()
     const list = res?.data ?? res
@@ -299,8 +374,8 @@ onMounted(async () => {
   position: relative;
   height: 250px;
   overflow: hidden;
-  mask-image: linear-gradient(to right, transparent 0%, #000 22%, #000 88%, transparent 100%),
-    linear-gradient(to bottom, transparent 0%, #000 18%, #000 100%);
+  mask-image: linear-gradient(to right, transparent 0%, #000 20%, #000 90%, transparent 100%),
+    linear-gradient(to bottom, transparent 0%, #000 14%, #000 78%, transparent 100%);
   -webkit-mask-composite: source-in;
   mask-composite: intersect;
 
@@ -308,9 +383,9 @@ onMounted(async () => {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: 50% 2%;
+    object-position: 50% 6%;
     opacity: 1;
-    filter: saturate(1.02) contrast(1.02);
+    filter: saturate(1.16) contrast(1.1);
   }
 }
 
@@ -672,7 +747,7 @@ onMounted(async () => {
     background: var(--indigo);
     opacity: 0.85;
     border-radius: 3px;
-    transition: width 1.2s var(--ease);
+    animation: bar-grow 1.1s var(--ease) 0.15s both;
 
     &.warm {
       background: var(--ochre);
@@ -833,4 +908,144 @@ onMounted(async () => {
     border-right: none;
   }
 }
+
+/* ---- 交互与色彩层次 ---- */
+.kpi {
+  transition: background 0.3s ease;
+  animation: kpi-in 0.6s var(--ease) both;
+
+  &:nth-child(2) { animation-delay: 0.06s; }
+  &:nth-child(3) { animation-delay: 0.12s; }
+  &:nth-child(4) { animation-delay: 0.18s; }
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 2px;
+    width: 0;
+    background: var(--tone, var(--indigo));
+    transition: width 0.45s var(--ease);
+  }
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.22);
+  }
+
+  &:hover::before {
+    width: 100%;
+  }
+
+  &:hover svg path {
+    opacity: 1;
+    stroke-width: 1.6;
+  }
+
+  svg path {
+    stroke: var(--tone, var(--indigo));
+  }
+}
+
+@keyframes bar-grow {
+  from { width: 0; }
+}
+
+@keyframes kpi-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+.tone-indigo { --tone: #24415f; }
+.tone-sage { --tone: #4f7358; }
+.tone-gold { --tone: #a8792c; }
+.tone-rose { --tone: #8a4b52; }
+
+.chart {
+  position: relative;
+  cursor: crosshair;
+}
+
+.crosshair {
+  stroke: rgba(19, 31, 43, 0.3);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+
+.tip {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  padding: 5px 8px;
+  border-radius: 2px;
+  pointer-events: none;
+  white-space: nowrap;
+  box-shadow: 0 10px 24px -14px rgba(0, 0, 0, 0.6);
+  z-index: 3;
+}
+
+.pt {
+  transition: r 0.18s var(--ease), fill 0.18s;
+}
+
+.donut .val {
+  animation: ring-in 1.4s var(--ease) 0.2s both;
+}
+
+@keyframes ring-in {
+  from { stroke-dasharray: 0 999; }
+  to { stroke-dasharray: 316 999; }
+}
+
+.donut:hover .val {
+  stroke: #35587a;
+}
+
+.legend div {
+  transition: transform 0.25s var(--ease);
+}
+
+.legend div:hover {
+  transform: translateX(2px);
+}
+
+.bar-row {
+  transition: background 0.25s;
+
+  &:hover .bar-fill {
+    opacity: 1;
+  }
+}
+
+.lib-table tbody tr {
+  transition: background 0.2s;
+}
+
+
+/* ---- 色彩层次收尾 ---- */
+.kpi .val .num {
+  color: var(--tone, var(--ink));
+}
+
+.panel-head h3::before {
+  content: '';
+  display: inline-block;
+  width: 3px;
+  height: 13px;
+  background: var(--ochre);
+  margin-right: 9px;
+  vertical-align: -1px;
+  opacity: 0.85;
+}
+
+.heat i[data-lv='1'] { background: rgba(79, 115, 88, 0.18); }
+.heat i[data-lv='2'] { background: rgba(79, 115, 88, 0.34); }
+.heat i[data-lv='3'] { background: rgba(36, 65, 95, 0.38); }
+.heat i[data-lv='4'] { background: rgba(36, 65, 95, 0.6); }
+.heat i[data-lv='5'] { background: var(--indigo); }
+
 </style>

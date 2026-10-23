@@ -615,8 +615,9 @@ function renderMarkdown(text) {
     margin-top: 2px;
 
     &.ai {
-      border-color: rgba(42, 74, 107, 0.35);
-      color: var(--indigo);
+      background: var(--indigo);
+      border-color: var(--indigo);
+      color: var(--paper);
     }
   }
 
@@ -709,9 +710,14 @@ function renderMarkdown(text) {
 .evidence-card {
   display: flex;
   gap: 9px;
-  padding: 9px 11px;
+  padding: 9px 11px 9px 9px;
   border: 1px solid var(--line);
+  border-left: 2px solid var(--indigo);
   border-radius: 2px;
+
+  &:has(.el-tag--success) {
+    border-left-color: var(--ochre);
+  }
 
   .ev-ref {
     font-family: var(--mono);
@@ -719,10 +725,11 @@ function renderMarkdown(text) {
     color: var(--paper);
     background: var(--indigo);
     border-radius: 1px;
-    padding: 1px 5px;
-    height: 16px;
+    padding: 2px 6px;
+    height: 18px;
     line-height: 14px;
     flex: 0 0 auto;
+    letter-spacing: 0;
   }
 
   .ev-body {
@@ -948,4 +955,94 @@ function renderMarkdown(text) {
     display: none;
   }
 }
+
+/* ---- 交互增强 ---- */
+.msg-row {
+  animation: msg-in 0.45s var(--ease) both;
+}
+
+@keyframes msg-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+.sessions-panel .session-item {
+  transition: background 0.2s, color 0.2s, padding-left 0.25s var(--ease);
+
+  &:hover {
+    padding-left: 22px;
+  }
+}
+
+.evidence-card {
+  transition: transform 0.25s var(--ease), border-color 0.25s, background 0.25s;
+
+  &:hover {
+    transform: translateX(2px);
+    border-color: rgba(36, 65, 95, 0.28);
+    background: rgba(255, 255, 255, 0.22);
+  }
+}
+
+.risk-card {
+  animation: risk-in 0.5s var(--ease) both;
+}
+
+@keyframes risk-in {
+  0% { opacity: 0; transform: scale(0.985); border-color: rgba(169, 73, 31, 0.9); }
+  60% { border-color: rgba(169, 73, 31, 0.9); }
+  100% { opacity: 1; transform: none; border-color: rgba(169, 73, 31, 0.4); }
+}
+
+.chat-empty .suggestion {
+  transition: border-color 0.2s, color 0.2s, background 0.2s, transform 0.25s var(--ease);
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.24);
+    transform: translateY(-1px);
+  }
+}
+
+.send-btn {
+  transition: transform 0.25s var(--ease), background 0.25s;
+
+  &:hover:not(.is-disabled) {
+    transform: translateY(-1px);
+  }
+}
+
+.new-session-btn {
+  transition: border-color 0.25s, color 0.25s, background 0.25s;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.24);
+  }
+}
+
+
+/* ---- 色彩层次收尾 ---- */
+.chat-header {
+  background: linear-gradient(90deg, rgba(36, 65, 95, 0.06), transparent 62%);
+}
+
+.profile-panel .profile-header::before {
+  content: '';
+  display: inline-block;
+  width: 2px;
+  height: 10px;
+  background: var(--ochre);
+  margin-right: 7px;
+  vertical-align: -1px;
+}
+
+.evidence-card :deep(.el-tag--primary) {
+  color: var(--indigo);
+  border-color: rgba(36, 65, 95, 0.3);
+}
+
+.evidence-card :deep(.el-tag--success) {
+  color: var(--ochre);
+  border-color: rgba(169, 73, 31, 0.35);
+}
+
 </style>
