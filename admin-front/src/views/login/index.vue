@@ -198,19 +198,18 @@ const handleLogin = async () => {
     position: absolute;
     inset: 0;
     pointer-events: none;
-    background: linear-gradient(90deg, rgba(246, 242, 234, 0.32) 0%, transparent 18%, transparent 72%, var(--paper) 100%),
-      linear-gradient(0deg, rgba(246, 242, 234, 0.92) 0%, rgba(246, 242, 234, 0.55) 18%, transparent 34%);
+    background: linear-gradient(90deg, rgba(236, 226, 207, 0.3) 0%, transparent 16%, transparent 76%, var(--paper) 100%),
+      linear-gradient(0deg, rgba(236, 226, 207, 0.94) 0%, rgba(236, 226, 207, 0.5) 20%, transparent 38%);
   }
 
   .wash {
     position: absolute;
     inset: -4%;
-    background-size: cover;
-    background-position: 48% 40%;
-    mix-blend-mode: multiply;
-    opacity: 0.86;
-    transform: scale(1.02);
-    filter: saturate(0.94) contrast(0.98);
+    background-size: contain;
+    background-position: 50% 46%;
+    background-repeat: no-repeat;
+    opacity: 1;
+    filter: saturate(1.02) contrast(1.02);
   }
 
   .fig {
@@ -226,11 +225,11 @@ const handleLogin = async () => {
 
   .ecg {
     position: absolute;
-    left: 6%;
-    right: 6%;
-    top: 46%;
-    height: 54px;
-    opacity: 0.55;
+    left: 4%;
+    right: 4%;
+    top: 74%;
+    height: 44px;
+    opacity: 0.3;
 
     path {
       fill: none;

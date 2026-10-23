@@ -37,8 +37,8 @@
           <svg viewBox="0 0 660 230" preserveAspectRatio="none">
             <defs>
               <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#2a4a6b" stop-opacity=".16" />
-                <stop offset="100%" stop-color="#2a4a6b" stop-opacity="0" />
+                <stop offset="0%" stop-color="#24415f" stop-opacity=".24" />
+                <stop offset="100%" stop-color="#24415f" stop-opacity="0" />
               </linearGradient>
             </defs>
             <line class="grid-line" x1="0" y1="30" x2="660" y2="30" />
@@ -78,7 +78,7 @@
           <span>00:00 — 23:00</span>
           <span class="scale">少
             <i style="background: var(--paper-3)"></i>
-            <i style="background: rgba(42, 74, 107, 0.3)"></i>
+            <i style="background: rgba(36, 65, 95, 0.26)"></i>
             <i style="background: rgba(42, 74, 107, 0.5)"></i>
             <i style="background: var(--indigo)"></i>
             多</span>
@@ -297,7 +297,7 @@ onMounted(async () => {
 
 .hero-art {
   position: relative;
-  height: 220px;
+  height: 250px;
   overflow: hidden;
   mask-image: linear-gradient(to right, transparent 0%, #000 22%, #000 88%, transparent 100%),
     linear-gradient(to bottom, transparent 0%, #000 18%, #000 100%);
@@ -308,10 +308,9 @@ onMounted(async () => {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: 50% 42%;
-    mix-blend-mode: multiply;
-    opacity: 0.95;
-    filter: saturate(0.95) contrast(0.98);
+    object-position: 50% 2%;
+    opacity: 1;
+    filter: saturate(1.02) contrast(1.02);
   }
 }
 
@@ -521,10 +520,10 @@ onMounted(async () => {
     background: var(--paper-3);
     transition: transform 0.18s var(--ease), background 0.18s;
 
-    &[data-lv='1'] { background: rgba(42, 74, 107, 0.16); }
-    &[data-lv='2'] { background: rgba(42, 74, 107, 0.3); }
-    &[data-lv='3'] { background: rgba(42, 74, 107, 0.48); }
-    &[data-lv='4'] { background: rgba(42, 74, 107, 0.68); }
+    &[data-lv='1'] { background: rgba(36, 65, 95, 0.14); }
+    &[data-lv='2'] { background: rgba(36, 65, 95, 0.26); }
+    &[data-lv='3'] { background: rgba(36, 65, 95, 0.42); }
+    &[data-lv='4'] { background: rgba(36, 65, 95, 0.6); }
     &[data-lv='5'] { background: var(--indigo); }
 
     &:hover {

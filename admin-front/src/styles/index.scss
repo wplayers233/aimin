@@ -6,32 +6,32 @@
 // ============================================
 
 :root {
-  --paper: #f6f2ea;
-  --paper-2: #efe9dc;
-  --paper-3: #e7dfcd;
-  --ink: #16202e;
-  --ink-2: #4b5563;
-  --ink-3: #8b8578;
-  --indigo: #2a4a6b;
-  --indigo-2: #3d6489;
-  --ochre: #b4552d;
+  --paper: #ece2cf;
+  --paper-2: #e5d9c3;
+  --paper-3: #d9cbb1;
+  --ink: #131f2b;
+  --ink-2: #3c4753;
+  --ink-3: #6f695d;
+  --indigo: #24415f;
+  --indigo-2: #35587a;
+  --ochre: #a9491f;
   --ochre-soft: rgba(180, 85, 45, 0.12);
   --sage: #6e8f7b;
-  --line: rgba(22, 32, 46, 0.12);
-  --line-2: rgba(22, 32, 46, 0.06);
+  --line: rgba(19, 31, 43, 0.18);
+  --line-2: rgba(19, 31, 43, 0.09);
 
   --serif: 'Songti SC', 'STSong', 'SimSun', 'Noto Serif SC', Georgia, serif;
   --sans: 'PingFang SC', 'Microsoft YaHei', -apple-system, 'Segoe UI', sans-serif;
   --mono: ui-monospace, 'SF Mono', Consolas, monospace;
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
 
-  --el-color-primary: #2a4a6b;
-  --el-color-primary-light-3: #3d6489;
+  --el-color-primary: #24415f;
+  --el-color-primary-light-3: #35587a;
   --el-color-primary-light-5: #6d8aa6;
   --el-color-primary-light-7: #a9bccd;
   --el-color-primary-light-8: #cbd6e0;
   --el-color-primary-light-9: rgba(42, 74, 107, 0.07);
-  --el-color-primary-dark-2: #1f3a55;
+  --el-color-primary-dark-2: #1a3249;
 
   --el-color-success: #6e8f7b;
   --el-color-warning: #b4552d;
@@ -43,29 +43,29 @@
   --el-border-radius-small: 2px;
   --el-border-radius-round: 999px;
 
-  --el-text-color-primary: #16202e;
-  --el-text-color-regular: #4b5563;
-  --el-text-color-secondary: #6f6a5e;
-  --el-text-color-placeholder: #a9a396;
-  --el-border-color: rgba(22, 32, 46, 0.14);
-  --el-border-color-light: rgba(22, 32, 46, 0.09);
-  --el-border-color-lighter: rgba(22, 32, 46, 0.05);
-  --el-fill-color-light: rgba(22, 32, 46, 0.03);
-  --el-fill-color-blank: #fffdf8;
+  --el-text-color-primary: #131f2b;
+  --el-text-color-regular: #3c4753;
+  --el-text-color-secondary: #5d584d;
+  --el-text-color-placeholder: #948d7d;
+  --el-border-color: rgba(19, 31, 43, 0.2);
+  --el-border-color-light: rgba(19, 31, 43, 0.13);
+  --el-border-color-lighter: rgba(19, 31, 43, 0.08);
+  --el-fill-color-light: rgba(19, 31, 43, 0.05);
+  --el-fill-color-blank: #f4ecdd;
   --el-box-shadow-light: 0 10px 30px -22px rgba(22, 32, 46, 0.4);
   --el-font-family: var(--sans);
 
-  --aimin-accent: #2a4a6b;
+  --aimin-accent: #24415f;
   --aimin-accent-soft: rgba(42, 74, 107, 0.08);
   --aimin-teal: #6e8f7b;
-  --aimin-bg: #f6f2ea;
-  --aimin-bg-elevated: #fbf8f1;
-  --aimin-card: #fffdf8;
-  --aimin-text: #16202e;
-  --aimin-text-secondary: #4b5563;
-  --aimin-text-tertiary: #8b8578;
-  --aimin-border: rgba(22, 32, 46, 0.12);
-  --aimin-border-strong: rgba(22, 32, 46, 0.2);
+  --aimin-bg: #ece2cf;
+  --aimin-bg-elevated: #f1e8d7;
+  --aimin-card: #f4ecdd;
+  --aimin-text: #131f2b;
+  --aimin-text-secondary: #3c4753;
+  --aimin-text-tertiary: #6f695d;
+  --aimin-border: rgba(19, 31, 43, 0.18);
+  --aimin-border-strong: rgba(19, 31, 43, 0.26);
   --aimin-radius-sm: 3px;
   --aimin-radius: 4px;
   --aimin-radius-lg: 4px;
@@ -112,7 +112,7 @@ body::before {
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  opacity: 0.32;
+  opacity: 0.24;
   background-image: radial-gradient(rgba(22, 32, 46, 0.18) 0.5px, transparent 0.5px);
   background-size: 3px 3px;
   mask-image: radial-gradient(120% 90% at 50% 0%, #000 20%, transparent 85%);
