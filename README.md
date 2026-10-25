@@ -12,6 +12,12 @@
 
 > 本项目仅供技术研究与演示，**不构成诊疗建议**。
 
+## Preview
+
+| 首页 · 问候展台 | 诊断工作台 |
+|---|---|
+| ![工作台首页](docs/screenshots/dashboard.png) | ![诊断工作台](docs/screenshots/workbench.png) |
+
 ---
 
 ## What's Inside
