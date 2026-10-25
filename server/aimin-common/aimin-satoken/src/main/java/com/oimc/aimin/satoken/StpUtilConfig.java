@@ -10,7 +10,9 @@ public class StpUtilConfig {
         adminConfig.setTokenName("aimin-admin-token");
         adminConfig.setTimeout(2592000);
         adminConfig.setActiveTimeout(-1L);
-        adminConfig.setIsConcurrent(false);
+        // 同账号多端共享同一 token：演示工作台常被浏览器 + 脚本同时登录，
+        // isConcurrent=false 会互相顶下线（"token 已被顶下线"），表现为页面刷新后莫名 401
+        adminConfig.setIsConcurrent(true);
         adminConfig.setIsShare(true);
         adminConfig.setIsLog(true);
         adminConfig.setTokenStyle("random-64");

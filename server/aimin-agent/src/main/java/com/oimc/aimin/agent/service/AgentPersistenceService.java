@@ -7,7 +7,11 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -23,7 +27,8 @@ public class AgentPersistenceService {
 
     private static final Logger log = LoggerFactory.getLogger(AgentPersistenceService.class);
 
-    private static final Pattern PHONE = Pattern.compile("(1[3-9]\\d)\\d{4}(\\d{4})");
+    // 手机号带数字边界：避免长数字串（证件号、卡号）内的子串被误当手机号脱敏
+    private static final Pattern PHONE = Pattern.compile("(?<!\\d)(1[3-9]\\d)\\d{4}(\\d{4})(?!\\d)");
     private static final Pattern ID_CARD = Pattern.compile("(?<!\\d)(\\d{6})\\d{8}(\\d{3}[\\dXx])(?!\\d)");
     private static final int TITLE_MAX = 60;
 
@@ -37,8 +42,10 @@ public class AgentPersistenceService {
         if (text == null) {
             return null;
         }
-        String masked = PHONE.matcher(text).replaceAll("$1****$2");
-        return ID_CARD.matcher(masked).replaceAll("$1********$2");
+        // 必须先身份证后手机号：18 位身份证内含 1[3-9] 开头的 11 位子串，
+        // 先跑手机号会把身份证错误截断（出生日期裸露）且让身份证规则失配
+        String masked = ID_CARD.matcher(text).replaceAll("$1********$2");
+        return PHONE.matcher(masked).replaceAll("$1****$2");
     }
 
     public void ensureSession(String sessionId, String firstQuestion) {
@@ -104,5 +111,64 @@ public class AgentPersistenceService {
         } catch (Exception e) {
             log.warn("审计清理失败 err={}", e.getMessage());
         }
+    }
+
+    // ---------- 工作台统计（数据全部来自落库表，天然受 90 天清理窗口约束） ----------
+
+    public long countSessions() {
+        Long n = drugJdbcTemplate.queryForObject("SELECT COUNT(*) FROM t_agent_session", Long.class);
+        return n == null ? 0 : n;
+    }
+
+    public long countMessagesByRole(String role) {
+        Long n = drugJdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM t_agent_message WHERE role=?", Long.class, role);
+        return n == null ? 0 : n;
+    }
+
+    /** 按 action 计数审计记录；未出现的 action 返回 0，保证前端拿到的 key 齐全 */
+    public Map<String, Long> countAuditByActions(List<String> actions) {
+        String placeholders = String.join(",", actions.stream().map(a -> "?").toList());
+        Map<String, Long> result = new LinkedHashMap<>();
+        actions.forEach(a -> result.put(a, 0L));
+        drugJdbcTemplate.query(
+                "SELECT action, COUNT(*) AS cnt FROM t_agent_audit WHERE action IN (" + placeholders + ") GROUP BY action",
+                rs -> {
+                    String action = rs.getString("action");
+                    if (result.containsKey(action)) {
+                        result.put(action, rs.getLong("cnt"));
+                    }
+                },
+                actions.toArray());
+        return result;
+    }
+
+    /** 近 N 天按天按角色计数；日期连续填零（MM-dd），前端无需补点 */
+    public List<Map<String, Object>> dailyMessageCounts(int days) {
+        LocalDate start = LocalDate.now().minusDays(days - 1L);
+        Map<LocalDate, Map<String, Long>> byDate = new LinkedHashMap<>();
+        for (int i = 0; i < days; i++) {
+            byDate.put(start.plusDays(i), new LinkedHashMap<>());
+        }
+        drugJdbcTemplate.query(
+                "SELECT DATE(created_at) AS d, role, COUNT(*) AS cnt FROM t_agent_message "
+                        + "WHERE created_at >= ? GROUP BY DATE(created_at), role",
+                rs -> {
+                    Map<String, Long> roles = byDate.get(rs.getDate("d").toLocalDate());
+                    if (roles != null) {
+                        roles.put(rs.getString("role"), rs.getLong("cnt"));
+                    }
+                },
+                Timestamp.valueOf(start.atStartOfDay()));
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("MM-dd");
+        List<Map<String, Object>> result = new ArrayList<>(days);
+        byDate.forEach((date, roles) -> {
+            Map<String, Object> row = new LinkedHashMap<>();
+            row.put("date", fmt.format(date));
+            row.put("questions", roles.getOrDefault("user", 0L));
+            row.put("answers", roles.getOrDefault("assistant", 0L));
+            result.add(row);
+        });
+        return result;
     }
 }

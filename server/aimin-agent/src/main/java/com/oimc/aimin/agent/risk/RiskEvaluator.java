@@ -20,7 +20,7 @@ public class RiskEvaluator {
     private static final List<Rule> RULES = List.of(
             new Rule("剂量与用法", Pattern.compile(
                     "剂量|用量|用法|服法|给药|怎么(吃|服用|用|喝)|如何(吃|服用|用)|"
-                            + "吃多少|喝多少|几片|几粒|一天(几|多少)次|每(日|天)(几|多少)次|频次|间隔多久")),
+                            + "吃多少|喝多少|几片|几粒|一天(吃|服|用)?(几|多少)次|每(日|天)(吃|服|用)?(几|多少)次|频次|间隔多久")),
             new Rule("处方与给药操作", Pattern.compile(
                     "处方|开点药|开药|配药|开(点|些|个|一盒|两盒|一包)|给我开|静滴|输液|注射|打针|手术|插管|麻醉|透析")),
             new Rule("剂量调整与过量", Pattern.compile(

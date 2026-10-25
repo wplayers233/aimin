@@ -1,5 +1,7 @@
 server:
   port: 8084
+  # 默认只监听本机回环；对外暴露需显式设 SERVER__ADDRESS
+  address: ${SERVER__ADDRESS:127.0.0.1}
   servlet:
     context-path: /aimin-admin
 

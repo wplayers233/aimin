@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -128,5 +129,23 @@ public class AgentController {
     @GetMapping("/docs")
     public ResponseEntity<?> docs() {
         return ResponseEntity.ok(Map.of("code", 200, "msg", "ok", "data", ingestionService.listDocs()));
+    }
+
+    /** 工作台统计：会话/问答/风险两阶段计数与近 N 天问答量（首页展示，数据均来自落库表，窗口对齐 90 天清理） */
+    @GetMapping("/stats")
+    public ResponseEntity<?> stats(@RequestParam(defaultValue = "14") int days) {
+        int window = Math.max(1, Math.min(days, 90));
+        Map<String, Long> audit = persistenceService.countAuditByActions(
+                List.of("ANSWER", "RISK_INTERRUPT", "RISK_CONFIRMED", "RISK_REJECTED"));
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("days", window);
+        data.put("sessions", persistenceService.countSessions());
+        data.put("questions", persistenceService.countMessagesByRole("user"));
+        data.put("answers", audit.getOrDefault("ANSWER", 0L));
+        data.put("riskInterrupted", audit.getOrDefault("RISK_INTERRUPT", 0L));
+        data.put("riskConfirmed", audit.getOrDefault("RISK_CONFIRMED", 0L));
+        data.put("riskRejected", audit.getOrDefault("RISK_REJECTED", 0L));
+        data.put("daily", persistenceService.dailyMessageCounts(window));
+        return ResponseEntity.ok(Map.of("code", 200, "msg", "ok", "data", data));
     }
 }
