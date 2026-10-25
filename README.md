@@ -14,9 +14,9 @@
 
 ## Preview
 
-| 首页 · 问候展台 | 诊断工作台 |
-|---|---|
-| ![工作台首页](docs/screenshots/dashboard.png) | ![诊断工作台](docs/screenshots/workbench.png) |
+| 登录页 | 首页 · 问候展台 | 诊断工作台 |
+|---|---|---|
+| ![登录页](docs/screenshots/login.png) | ![工作台首页](docs/screenshots/dashboard.png) | ![诊断工作台](docs/screenshots/workbench.png) |
 
 ---
 
