@@ -52,16 +52,22 @@ mysql -uroot -p aimin < server/sql/20261019_phase2_persistence.sql
 
 ```bash
 cd server
-mvn -DskipTests -Dmaven.repo.local=C:/Users/Public/aimin-mvn-repo -pl aimin-agent -am package
+mvn -DskipTests -Dmaven.repo.local=C:/Users/Public/aimin-mvn-repo \
+  -pl aimin-gateway,aimin-auth,aimin-admin,aimin-agent -am package
 
-# 四个进程逐个启动（端口必须显式指定，环境变量可能泄漏覆盖）
-SERVER__PORT=8081 java --enable-preview -jar aimin-auth/target/aimin-auth.jar
-SERVER__PORT=8084 MYSQL_URL="jdbc:mysql://127.0.0.1:3306/aimin?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true" MYSQL_USERNAME=root MYSQL_PASSWORD=123456 java --enable-preview -jar aimin-admin/target/aimin-admin.jar
-SERVER__PORT=8087 MYSQL_URL="..." MYSQL_USERNAME=root MYSQL_PASSWORD=123456 DEEPSEEK_API_KEY=sk-xxx java --enable-preview -jar aimin-agent/target/aimin-agent.jar
-SERVER__PORT=8080 SPRING_CLOUD_NACOS_DISCOVERY_ENABLED=false java --enable-preview -jar aimin-gateway/target/aimin-gateway.jar
+# 公共环境（Git Bash；端口必须显式指定，环境变量可能泄漏覆盖）
+export MYSQL_URL="jdbc:mysql://127.0.0.1:3306/aimin?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true"
+export MYSQL_USERNAME=root MYSQL_PASSWORD=123456
+export SPRING_CLOUD_NACOS_DISCOVERY_ENABLED=false SPRING_CLOUD_NACOS_CONFIG_ENABLED=false
+
+# 四个进程逐个启动
+SERVER__PORT=8081 WX_APPID=wx0000000000000000 WX_SECRET=dummy java --enable-preview -jar aimin-auth/target/aimin-auth.jar
+SERVER__PORT=8084 java --enable-preview -jar aimin-admin/target/aimin-admin.jar
+SERVER__PORT=8087 DEEPSEEK_API_KEY=sk-xxx java --enable-preview -jar aimin-agent/target/aimin-agent.jar
+SERVER__PORT=8080 java --enable-preview -jar aimin-gateway/target/aimin-gateway.jar
 ```
 
-未配置 `DEEPSEEK_API_KEY` 时 agent 自动进入**演示模式**（固定模板回答，检索/风险/审计链路照常）。
+`MYSQL_*` 与 `WX_*` 在配置中无默认值，必须显式传入（微信参数填占位值即可，网页端未接入）；未配置 `DEEPSEEK_API_KEY` 时 agent 自动进入**演示模式**（固定模板回答，检索/风险/审计链路照常）。
 
 ### 4. 启动前端
 

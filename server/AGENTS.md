@@ -84,7 +84,8 @@ aimin/                          # 工作区根
 # jar 已构建；改代码后：mvn -DskipTests -Dmaven.repo.local=C:/Users/Public/aimin-mvn-repo -pl <模块> [-am] package
 
 # 四个服务（Git Bash，在 server/ 下；必须带 --enable-preview 和 SERVER__PORT）
-export SERVER__PORT=8081 MYSQL_URL="jdbc:mysql://127.0.0.1:3306/aimin?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true" MYSQL_USERNAME=root MYSQL_PASSWORD=123456 SPRING_CLOUD_NACOS_DISCOVERY_ENABLED=false SPRING_CLOUD_NACOS_CONFIG_ENABLED=false WX_APPID=wx0000000000000000 WX_SECRET=dummy ALIBABA_CLOUD_ACCESS_KEY_ID=dummy ALIBABA_CLOUD_ACCESS_KEY_SECRET=dummy
+# MYSQL_*/WX_* 在配置中无默认值必须显式传（WX 填占位即可）；ALIBABA_CLOUD_* 凭据引用已随验证码下线删除
+export SERVER__PORT=8081 MYSQL_URL="jdbc:mysql://127.0.0.1:3306/aimin?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true" MYSQL_USERNAME=root MYSQL_PASSWORD=123456 SPRING_CLOUD_NACOS_DISCOVERY_ENABLED=false SPRING_CLOUD_NACOS_CONFIG_ENABLED=false WX_APPID=wx0000000000000000 WX_SECRET=dummy
 "C:/Program Files/Java/jdk-21.0.12/bin/java" --enable-preview -jar aimin-auth/target/aimin-auth.jar &
 export SERVER__PORT=8084 ...同上...  # admin
 export SERVER__PORT=8087 MYSQL_URL=... MYSQL_USERNAME=root MYSQL_PASSWORD=123456  # agent（仅需这三个）
