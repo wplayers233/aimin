@@ -21,14 +21,13 @@ const componentMap = {
   'drugs/index': () => import('@/views/error/404.vue'),
   'drugs/category': () => import('@/views/error/404.vue'),
 
-  // 运营管理
+  // 运营/医生管理页已下线（脚手架模板残留，DB 菜单仍存在，统一落到 404）
   'operations': Layout,
-  'operations/xcx': () => import('@/views/operations/xcx/index.vue'),
+  'operations/xcx': () => import('@/views/error/404.vue'),
 
-  //医生管理
   'doctor': Layout,
-  'doctor/index': () => import('@/views/doctor/index.vue'),
-  'doctor/hospital': () => import('@/views/doctor/hospital.vue'),
+  'doctor/index': () => import('@/views/error/404.vue'),
+  'doctor/hospital': () => import('@/views/error/404.vue'),
 
   // 错误页面
   '404': () => import('@/views/error/404.vue')

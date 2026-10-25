@@ -89,6 +89,11 @@ export function getStatus() {
   return request({ baseURL: API_BASE, url: '/aimin-agent/agent/status', method: 'get' })
 }
 
+// 工作台统计（会话/问答/风险计数 + 近 N 天问答量，数据来自落库表）
+export function getStats(days = 14) {
+  return request({ baseURL: API_BASE, url: '/aimin-agent/agent/stats', method: 'get', params: { days } })
+}
+
 // 历史会话列表
 export function listSessions(limit = 50) {
   return request({ baseURL: API_BASE, url: '/aimin-agent/agent/sessions', method: 'get', params: { limit } })

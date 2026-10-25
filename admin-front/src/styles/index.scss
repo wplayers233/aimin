@@ -1,83 +1,89 @@
 // ============================================
-// aimin · 临床图谱视觉系统（Clinical Atlas）
-// 纸感底色 / 墨蓝主色 / 朱砂强调 / 衬线标题
+// aimin · 暖砂鼠尾草视觉系统（Warm Sand & Sage）
+// 暖亚麻纸底 / 鼠尾草青主色 / 暖陶土点缀 / 衬线标题
 // 保留 .aimin-page / .aimin-surface 等旧类名，
 // 让尚未重写的管理页仍能正常渲染。
 // ============================================
 
 :root {
-  --paper: #ece2cf;
-  --paper-2: #e5d9c3;
-  --paper-3: #d9cbb1;
-  --ink: #131f2b;
-  --ink-2: #3c4753;
-  --ink-3: #6f695d;
-  --indigo: #24415f;
-  --indigo-2: #35587a;
-  --ochre: #a9491f;
-  --ochre-soft: rgba(180, 85, 45, 0.12);
-  --sage: #6e8f7b;
-  --sage-deep: #4f7358;
-  --rose: #8a4b52;
-  --gold: #a8792c;
-  --indigo-tint: rgba(36, 65, 95, 0.06);
-  --ochre-tint: rgba(169, 73, 31, 0.08);
-  --line: rgba(19, 31, 43, 0.18);
-  --line-2: rgba(19, 31, 43, 0.09);
+  // 纸张：雾青亚麻，冷半档、深半档，降低大面积眩光
+  --paper: #e9eee8;
+  --paper-2: #e1e7e1;
+  --paper-3: #d4dbd5;
+  // 墨色：深松绿灰，替代纯黑，长时间阅读更柔和
+  --ink: #2c3834;
+  --ink-2: #52605b;
+  --ink-3: #6f6a5f;
+  // 主色：鼠尾草青（低饱和，安静、可信；#436f64 保证纸上文字 ≥ 5:1）
+  --indigo: #436f64;
+  --indigo-2: #5a877b;
+  // 点缀：暖陶土，只用于分隔、当前项、风险提示
+  --ochre: #b07e5c;
+  --ochre-deep: #8a5a3c;
+  --ochre-soft: rgba(176, 126, 92, 0.12);
+  // 语义色：全部降饱和；-deep 专供小字号文字
+  --sage: #7d9a87;
+  --sage-deep: #557565;
+  --rose: #97696b;
+  --gold: #a78a5f;
+  --indigo-tint: rgba(67, 111, 100, 0.07);
+  --ochre-tint: rgba(176, 126, 92, 0.09);
+  --line: rgba(44, 56, 52, 0.16);
+  --line-2: rgba(44, 56, 52, 0.08);
 
   --serif: 'Songti SC', 'STSong', 'SimSun', 'Noto Serif SC', Georgia, serif;
   --sans: 'PingFang SC', 'Microsoft YaHei', -apple-system, 'Segoe UI', sans-serif;
   --mono: ui-monospace, 'SF Mono', Consolas, monospace;
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
 
-  --el-color-primary: #24415f;
-  --el-color-primary-light-3: #35587a;
-  --el-color-primary-light-5: #6d8aa6;
-  --el-color-primary-light-7: #a9bccd;
-  --el-color-primary-light-8: #cbd6e0;
-  --el-color-primary-light-9: rgba(42, 74, 107, 0.07);
-  --el-color-primary-dark-2: #1a3249;
+  --el-color-primary: #436f64;
+  --el-color-primary-light-3: #6e958a;
+  --el-color-primary-light-5: #97b3aa;
+  --el-color-primary-light-7: #c0d2cc;
+  --el-color-primary-light-8: #d5e1dd;
+  --el-color-primary-light-9: rgba(67, 111, 100, 0.08);
+  --el-color-primary-dark-2: #3a6057;
 
-  --el-color-success: #6e8f7b;
-  --el-color-warning: #b4552d;
-  --el-color-danger: #a8402a;
-  --el-color-error: #a8402a;
-  --el-color-info: #8b8578;
+  --el-color-success: #6f917f;
+  --el-color-warning: #96643f;
+  --el-color-danger: #a65f5a;
+  --el-color-error: #a65f5a;
+  --el-color-info: #8a8578;
 
   --el-border-radius-base: 3px;
   --el-border-radius-small: 2px;
   --el-border-radius-round: 999px;
 
-  --el-text-color-primary: #131f2b;
-  --el-text-color-regular: #3c4753;
-  --el-text-color-secondary: #5d584d;
-  --el-text-color-placeholder: #948d7d;
-  --el-border-color: rgba(19, 31, 43, 0.2);
-  --el-border-color-light: rgba(19, 31, 43, 0.13);
-  --el-border-color-lighter: rgba(19, 31, 43, 0.08);
-  --el-fill-color-light: rgba(19, 31, 43, 0.05);
-  --el-fill-color-blank: #f4ecdd;
-  --el-box-shadow-light: 0 10px 30px -22px rgba(22, 32, 46, 0.4);
+  --el-text-color-primary: #2c3834;
+  --el-text-color-regular: #52605b;
+  --el-text-color-secondary: #6f6a5f;
+  --el-text-color-placeholder: #8f887a;
+  --el-border-color: rgba(44, 56, 52, 0.18);
+  --el-border-color-light: rgba(44, 56, 52, 0.12);
+  --el-border-color-lighter: rgba(44, 56, 52, 0.07);
+  --el-fill-color-light: rgba(44, 56, 52, 0.04);
+  --el-fill-color-blank: #f2f6f1;
+  --el-box-shadow-light: 0 10px 30px -22px rgba(44, 56, 52, 0.3);
   --el-font-family: var(--sans);
 
-  --aimin-accent: #24415f;
-  --aimin-accent-soft: rgba(42, 74, 107, 0.08);
-  --aimin-teal: #6e8f7b;
-  --aimin-bg: #ece2cf;
-  --aimin-bg-elevated: #f1e8d7;
-  --aimin-card: #f4ecdd;
-  --aimin-text: #131f2b;
-  --aimin-text-secondary: #3c4753;
-  --aimin-text-tertiary: #6f695d;
-  --aimin-border: rgba(19, 31, 43, 0.18);
-  --aimin-border-strong: rgba(19, 31, 43, 0.26);
+  --aimin-accent: #436f64;
+  --aimin-accent-soft: rgba(67, 111, 100, 0.08);
+  --aimin-teal: #7d9a87;
+  --aimin-bg: #e9eee8;
+  --aimin-bg-elevated: #f2f6f1;
+  --aimin-card: #f2f6f1;
+  --aimin-text: #2c3834;
+  --aimin-text-secondary: #52605b;
+  --aimin-text-tertiary: #6f6a5f;
+  --aimin-border: rgba(44, 56, 52, 0.16);
+  --aimin-border-strong: rgba(44, 56, 52, 0.26);
   --aimin-radius-sm: 3px;
   --aimin-radius: 4px;
   --aimin-radius-lg: 4px;
   --aimin-radius-xl: 6px;
   --aimin-shadow-card: none;
-  --aimin-shadow-hover: 0 12px 30px -26px rgba(22, 32, 46, 0.5);
-  --aimin-shadow-pop: 0 24px 60px -28px rgba(22, 32, 46, 0.45);
+  --aimin-shadow-hover: 0 12px 30px -26px rgba(44, 56, 52, 0.3);
+  --aimin-shadow-pop: 0 24px 60px -28px rgba(44, 56, 52, 0.28);
   --aimin-ease: var(--ease);
 }
 
@@ -102,7 +108,11 @@ body {
   font-size: 14px;
   color: var(--ink);
   line-height: 1.7;
-  background: var(--paper);
+  // 左上鼠尾草、右上暖陶土的两团极淡光晕，让大面积底色不“平”
+  background:
+    radial-gradient(1100px 640px at 8% -12%, rgba(125, 154, 135, 0.16), transparent 62%),
+    radial-gradient(900px 560px at 100% 0%, rgba(176, 126, 92, 0.09), transparent 58%),
+    var(--paper);
 }
 
 #app {
@@ -117,14 +127,14 @@ body::before {
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  opacity: 0.24;
-  background-image: radial-gradient(rgba(22, 32, 46, 0.18) 0.5px, transparent 0.5px);
+  opacity: 0.1;
+  background-image: radial-gradient(rgba(44, 56, 52, 0.16) 0.5px, transparent 0.5px);
   background-size: 3px 3px;
   mask-image: radial-gradient(120% 90% at 50% 0%, #000 20%, transparent 85%);
 }
 
 ::selection {
-  background: rgba(180, 85, 45, 0.18);
+  background: rgba(176, 126, 92, 0.22);
 }
 
 ::-webkit-scrollbar {
@@ -132,10 +142,10 @@ body::before {
   height: 8px;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(22, 32, 46, 0.16);
+  background: rgba(44, 56, 52, 0.16);
   border-radius: 4px;
   &:hover {
-    background: rgba(22, 32, 46, 0.28);
+    background: rgba(44, 56, 52, 0.28);
   }
 }
 ::-webkit-scrollbar-track {
@@ -246,12 +256,14 @@ a {
   transition: background-color 0.25s var(--ease), border-color 0.25s, color 0.25s;
 
   &--primary {
-    background: var(--ink);
-    border-color: var(--ink);
+    background: var(--indigo);
+    border-color: var(--indigo);
+    color: var(--paper);
     box-shadow: none;
     &:hover {
-      background: var(--indigo);
-      border-color: var(--indigo);
+      background: var(--indigo-2);
+      border-color: var(--indigo-2);
+      color: var(--paper);
     }
   }
 }
@@ -266,7 +278,7 @@ a {
       box-shadow: 0 0 0 1px var(--aimin-border-strong) inset;
     }
     &.is-focus {
-      box-shadow: 0 0 0 1px var(--ink) inset;
+      box-shadow: 0 0 0 1px var(--indigo) inset;
     }
   }
 }
@@ -276,7 +288,7 @@ a {
   box-shadow: 0 0 0 1px var(--line) inset;
   background: transparent;
   &:focus {
-    box-shadow: 0 0 0 1px var(--ink) inset;
+    box-shadow: 0 0 0 1px var(--indigo) inset;
   }
 }
 
@@ -322,7 +334,7 @@ a {
 .el-table {
   --el-table-header-bg-color: transparent;
   --el-table-border-color: var(--line-2);
-  --el-table-row-hover-bg-color: rgba(22, 32, 46, 0.025);
+  --el-table-row-hover-bg-color: rgba(44, 56, 52, 0.03);
   --el-table-bg-color: transparent;
   --el-table-tr-bg-color: transparent;
   font-size: 12.5px;
@@ -361,8 +373,8 @@ a {
 
   .el-pager li.is-active {
     background: transparent;
-    color: var(--ink);
-    border-bottom: 1px solid var(--ink);
+    color: var(--indigo);
+    border-bottom: 1px solid var(--indigo);
   }
 }
 
@@ -385,7 +397,7 @@ a {
   border-radius: 2px;
   border: 1px solid var(--line);
   background: var(--paper);
-  box-shadow: var(--aimin-shadow-light);
+  box-shadow: var(--el-box-shadow-light);
 }
 
 .el-popper.is-light {
@@ -404,14 +416,14 @@ a {
     padding: 7px 12px;
     font-size: 13px;
     &:hover {
-      background: rgba(22, 32, 46, 0.05);
+      background: rgba(44, 56, 52, 0.05);
       color: var(--ink);
     }
   }
 }
 
 .el-tree {
-  --el-tree-node-hover-bg-color: rgba(22, 32, 46, 0.04);
+  --el-tree-node-hover-bg-color: rgba(44, 56, 52, 0.04);
   background: transparent;
   font-size: 13px;
 
@@ -421,8 +433,8 @@ a {
   }
 
   .el-tree-node.is-current > .el-tree-node__content {
-    background: rgba(42, 74, 107, 0.07);
-    color: var(--ink);
+    background: rgba(74, 120, 109, 0.08);
+    color: var(--indigo);
   }
 }
 
@@ -443,12 +455,12 @@ a {
 
 .el-upload-dragger {
   border-radius: 3px;
-  border: 1px dashed rgba(22, 32, 46, 0.28);
+  border: 1px dashed rgba(44, 56, 52, 0.28);
   background: transparent;
   transition: border-color 0.25s, background 0.25s;
   &:hover {
-    border-color: var(--ink);
-    background: rgba(255, 255, 255, 0.28);
+    border-color: var(--indigo);
+    background: rgba(255, 255, 255, 0.3);
   }
 }
 
@@ -491,10 +503,10 @@ a {
 }
 
 #nprogress .bar {
-  background: var(--ochre);
+  background: var(--indigo);
   height: 2px;
 }
 
 #nprogress .peg {
-  box-shadow: 0 0 8px var(--ochre), 0 0 4px var(--ochre);
+  box-shadow: 0 0 8px var(--indigo), 0 0 4px var(--indigo);
 }

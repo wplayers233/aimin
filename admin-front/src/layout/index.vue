@@ -70,7 +70,7 @@
         <div class="tools">
           <span class="dot"></span>
           <span class="num">{{ clock }}</span>
-          <span class="env">LOCAL · DEMO</span>
+          <span class="env">{{ envLabel }}</span>
         </div>
       </header>
 
@@ -92,11 +92,15 @@ import { SwitchButton } from '@element-plus/icons-vue'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { resetRouter } from '@/utils/dynamicRoutes'
 import { logout } from '@/api/auth'
-import { useUserStore } from '@/store'
+import { useUserStore, useAppStore } from '@/store'
 
 const userStore = useUserStore()
+const appStore = useAppStore()
 const router = useRouter()
 const route = useRoute()
+
+// 顶栏环境徽标：DEMO 与否来自 /agent/status 的真实 mock 状态，不再写死
+const envLabel = computed(() => (appStore.isDemoMode ? 'LOCAL · DEMO' : 'LOCAL'))
 
 const isCollapse = ref(false)
 const toggleSideBar = () => {
@@ -162,6 +166,7 @@ const tick = () => {
 onMounted(() => {
   tick()
   timer = setInterval(tick, 30000)
+  appStore.loadAgentStatus()
 })
 onUnmounted(() => timer && clearInterval(timer))
 
@@ -309,19 +314,19 @@ function handleLogout() {
 
   &:hover {
     color: var(--ink);
-    background: rgba(22, 32, 46, 0.025);
+    background: rgba(44, 56, 52, 0.025);
   }
 
   &.on {
     color: var(--ink);
-    background: rgba(42, 74, 107, 0.055);
+    background: rgba(74, 120, 109, 0.055);
 
     .bar {
       height: 22px;
     }
 
     .idx {
-      color: var(--ochre);
+      color: var(--ochre-deep);
     }
   }
 
@@ -383,7 +388,7 @@ function handleLogout() {
     padding: 4px;
     transition: color 0.2s;
     &:hover {
-      color: var(--ochre);
+      color: var(--ochre-deep);
     }
   }
 }

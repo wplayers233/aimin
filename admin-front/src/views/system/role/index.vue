@@ -476,7 +476,7 @@ h2 {
   margin: 0;
   font-size: 20px;
   font-weight: 600;
-  color: #303133;
+  color: var(--ink);
 }
 
 .role-list-container {
@@ -489,17 +489,17 @@ h2 {
   justify-content: space-between;
   align-items: center;
   padding: 10px 15px;
-  border-bottom: 1px solid #ebeef5;
+  border-bottom: 1px solid var(--line-2);
   cursor: pointer;
   transition: background-color 0.3s;
 }
 
 .role-item:hover {
-  background-color: #f5f7fa;
+  background-color: var(--paper-2);
 }
 
 .role-item-active {
-  background-color: #ecf5ff;
+  background-color: var(--el-color-primary-light-9);
 }
 
 .role-info {
@@ -510,7 +510,7 @@ h2 {
 .role-name {
   font-size: 14px;
   font-weight: 500;
-  color: #303133;
+  color: var(--ink);
   margin-bottom: 4px;
   white-space: nowrap;
   overflow: hidden;
@@ -519,7 +519,7 @@ h2 {
 
 .role-code {
   font-size: 12px;
-  color: #909399;
+  color: var(--ink-3);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -531,14 +531,14 @@ h2 {
 
 .el-dropdown-link {
   cursor: pointer;
-  color: #909399;
+  color: var(--ink-3);
   display: flex;
   align-items: center;
   font-size: 18px;
 }
 
 .el-dropdown-link:hover {
-  color: #409eff;
+  color: var(--indigo);
 }
 
 .no-data {
@@ -546,7 +546,7 @@ h2 {
   justify-content: center;
   align-items: center;
   height: 100px;
-  color: #909399;
+  color: var(--ink-3);
   font-size: 14px;
 }
 

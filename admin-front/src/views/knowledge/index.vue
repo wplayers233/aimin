@@ -93,7 +93,7 @@ const totalChunks = computed(() =>
   docs.value.reduce((sum, d) => sum + (Number(d?.chunks) || 0), 0)
 )
 
-const palette = ['#24415f', '#4f7358', '#a8792c', '#a9491f', '#8a4b52', '#35587a']
+const palette = ['#4a786d', '#5b7d6a', '#a78a5f', '#b07e5c', '#97696b', '#628f84']
 
 const pct = (d) => {
   const total = totalChunks.value || 1
@@ -241,7 +241,7 @@ onMounted(refresh)
       font-family: var(--mono);
       font-size: 10px;
       letter-spacing: 0.14em;
-      color: var(--ochre);
+      color: var(--ochre-deep);
     }
   }
 }
@@ -291,10 +291,10 @@ onMounted(refresh)
   .note {
     margin-top: 14px;
     font-size: 12px;
-    color: var(--sage);
+    color: var(--sage-deep);
 
     &.err {
-      color: var(--ochre);
+      color: var(--ochre-deep);
     }
   }
 }

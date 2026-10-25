@@ -777,12 +777,12 @@ const handleRoleChange = () => {
 :deep(.el-drawer__header) {
   margin-bottom: 0;
   padding: 15px 20px;
-  border-bottom: 1px solid #e4e7ed;
+  border-bottom: 1px solid var(--line-2);
 }
 
 :deep(.el-drawer__footer) {
   padding: 10px 20px;
-  border-top: 1px solid #e4e7ed;
+  border-top: 1px solid var(--line-2);
   display: flex;
   justify-content: flex-end;
 }

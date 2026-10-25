@@ -37,30 +37,6 @@ const constantRoutes = [
       },
     ]
   },
- /* {
-    path: "/drugs",
-    name: "Drugs",
-    component: () => import('@/layout/index.vue'),
-    meta: {
-      title: '药品管理',
-      hidden: false
-    },
-    children: [
-      {
-        path: 'index',
-        name: 'DrugsIndex',
-        component: () => import('@/views/drugs/index.vue'),
-        meta: {
-          title: '药品管理',
-          hidden: false
-        }
-      },
-    ]
-  },*/
-
-
-
-
   {
     path: '/agent',
     name: 'AgentWorkbench',

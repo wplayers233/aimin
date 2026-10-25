@@ -1,276 +1,255 @@
 <template>
   <div class="overview">
-    <div class="hero">
+    <!-- 问候区：大标题 + 水彩解剖图，数据全部来自真实接口 -->
+    <section class="hero">
       <div class="hero-copy">
-        <span class="eyebrow">Clinical Overview · {{ today }}</span>
-        <h2 class="serif-title">每一条结论，<br />都回到它的出处。</h2>
+        <span class="eyebrow">CLINICAL WORKBENCH · {{ today }} 星期{{ weekday }}</span>
+        <h1 class="headline">{{ greeting }}，{{ displayName }}。</h1>
         <p class="lede">
-          知识库共 {{ docCount }} 篇、{{ chunkCount }} 个切片；检索命中后由模型组织回答，
-          角标对应原文段落，风险类问题在生成前拦截并二次确认。
+          知识库收录 <b>{{ docsCount }}</b> 篇临床文档，每条回答都附原文出处；
+          涉及处方与剂量的提问，会先请您二次确认。
         </p>
+        <div class="hero-actions">
+          <button class="cta" @click="goWorkbench">
+            进入诊断工作台
+            <i class="arrow">→</i>
+          </button>
+          <span
+            v-if="isDemo"
+            class="demo-pill"
+            title="未配置生成模型密钥，回答为固定模板"
+          >演示模式 · 未接入生成模型</span>
+        </div>
       </div>
       <div class="hero-art">
         <img :src="heroImg" alt="" />
       </div>
-    </div>
+    </section>
 
-    <div class="kpis">
-      <div v-for="k in kpis" :key="k.label" class="kpi" :class="`tone-${k.tone}`">
-        <span class="label">{{ k.label }}</span>
-        <div class="val">
-          <span class="num" :data-count="k.value" :data-dec="k.dec || 0">0</span><small v-if="k.unit">{{ k.unit }}</small>
-        </div>
-        <span class="delta" :class="{ down: k.warn }">{{ k.delta }}</span>
-        <svg viewBox="0 0 100 26" preserveAspectRatio="none">
-          <path :d="k.spark" />
-        </svg>
+    <!-- 运行数据：四张浮卡，数字全部来自落库统计 -->
+    <section class="block">
+      <div class="block-head">
+        <h2>运行数据</h2>
+        <span class="meta">来自本地运行记录 · 保留 90 天</span>
       </div>
-    </div>
+      <div class="metrics">
+        <div v-for="m in metricCards" :key="m.label" class="metric" :style="{ '--tone': m.tone }">
+          <span class="m-label">{{ m.label }}</span>
+          <div class="m-val">
+            <template v-if="statsLoaded">
+              <span class="num" :data-count="m.value">0</span><small>{{ m.unit }}</small>
+            </template>
+            <span v-else class="pending">—</span>
+          </div>
+          <span class="m-sub">{{ m.sub }}</span>
+        </div>
+      </div>
+    </section>
 
-    <div class="grid-2">
-      <div class="panel">
+    <!-- 近 14 日咨询量 + 最近会话 -->
+    <section class="grid-2">
+      <div class="card">
         <div class="panel-head">
           <h3>近十四日咨询量</h3>
-          <span class="meta">Q / DAY</span>
+          <span class="meta">QUESTIONS / DAY</span>
         </div>
-        <div class="chart" @mousemove="onChartMove" @mouseleave="hoverIdx = -1">
-          <svg viewBox="0 0 660 230" preserveAspectRatio="none">
+        <div v-if="statsLoaded && hasDaily" class="chart" @mousemove="onChartMove" @mouseleave="hoverIdx = -1">
+          <svg viewBox="0 0 660 250" preserveAspectRatio="none">
             <defs>
               <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#24415f" stop-opacity=".24" />
-                <stop offset="100%" stop-color="#24415f" stop-opacity="0" />
+                <stop offset="0%" stop-color="#4a786d" stop-opacity=".22" />
+                <stop offset="100%" stop-color="#4a786d" stop-opacity="0" />
               </linearGradient>
             </defs>
             <line class="grid-line" x1="0" y1="30" x2="660" y2="30" />
-            <line class="grid-line" x1="0" y1="85" x2="660" y2="85" />
-            <line class="grid-line" x1="0" y1="140" x2="660" y2="140" />
-            <line class="grid-line" x1="0" y1="195" x2="660" y2="195" />
-            <text class="axis-label" x="0" y="222">10/10</text>
-            <text class="axis-label" x="300" y="222">10/16</text>
-            <text class="axis-label" x="612" y="222">10/23</text>
-            <path class="area" d="M0 168 L50 152 L100 160 L150 128 L200 140 L250 104 L300 118 L350 74 L400 88 L450 58 L500 66 L550 36 L600 44 L660 20 L660 200 L0 200 Z" />
-            <path class="line" d="M0 168 L50 152 L100 160 L150 128 L200 140 L250 104 L300 118 L350 74 L400 88 L450 58 L500 66 L550 36 L600 44 L660 20" />
+            <line class="grid-line" x1="0" y1="80" x2="660" y2="80" />
+            <line class="grid-line" x1="0" y1="130" x2="660" y2="130" />
+            <line class="grid-line" x1="0" y1="180" x2="660" y2="180" />
+            <text class="axis-label" x="0" y="240">{{ axisLabels[0] }}</text>
+            <text class="axis-label" x="300" y="240">{{ axisLabels[1] }}</text>
+            <text class="axis-label" x="618" y="240">{{ axisLabels[2] }}</text>
+            <path class="area" :d="areaPath" />
+            <path class="line" :d="linePath" />
             <line
               v-if="hoverIdx >= 0"
               class="crosshair"
-              :x1="points[hoverIdx].x"
-              :x2="points[hoverIdx].x"
-              y1="16"
-              y2="200"
+              :x1="chartPoints[hoverIdx].x"
+              :x2="chartPoints[hoverIdx].x"
+              y1="18"
+              y2="205"
             />
             <circle
-              v-for="(p, i) in points"
+              v-for="(p, i) in chartPoints"
               :key="i"
               class="pt"
-              :class="{ hot: i === hoverIdx || i === hotIdx }"
+              :class="{ hot: i === hoverIdx || i === chartPoints.length - 1 }"
               :cx="p.x"
               :cy="p.y"
               :r="i === hoverIdx ? 4.5 : 3"
             />
           </svg>
           <div v-if="hoverIdx >= 0" class="tip" :style="{ left: tipLeft, top: tipTop }">
-            {{ points[hoverIdx].date }} · {{ points[hoverIdx].v }} 次
+            {{ chartPoints[hoverIdx].date }} · {{ chartPoints[hoverIdx].v }} 次
           </div>
         </div>
-
-        <div class="heat-head">
-          <h4>问答时段分布</h4>
-          <span>7 DAYS × 24 HOURS</span>
-        </div>
-        <div class="heat">
-          <template v-for="row in heatRows" :key="row.day">
-            <span class="lab">{{ row.day }}</span>
-            <i
-              v-for="(lv, i) in row.cells"
-              :key="i"
-              :data-lv="lv || null"
-              :title="row.day + ' ' + String(i).padStart(2, '0') + ':00'"
-            ></i>
-          </template>
-        </div>
-        <div class="heat-foot">
-          <span>00:00 — 23:00</span>
-          <span class="scale">少
-            <i style="background: var(--paper-3)"></i>
-            <i style="background: rgba(36, 65, 95, 0.26)"></i>
-            <i style="background: rgba(42, 74, 107, 0.5)"></i>
-            <i style="background: var(--indigo)"></i>
-            多</span>
-        </div>
+        <div v-else class="empty">{{ statsLoaded ? '暂无咨询记录' : '正在加载…' }}</div>
       </div>
 
-      <div class="panel">
+      <div class="card">
         <div class="panel-head">
-          <h3>证据可回溯率</h3>
-          <span class="meta">TRACEABLE</span>
+          <h3>最近会话</h3>
+          <span class="meta">SESSIONS</span>
         </div>
-        <div class="donut-wrap">
-          <div class="donut">
-            <svg viewBox="0 0 120 120">
-              <circle class="track" cx="60" cy="60" r="52" />
-              <circle class="val" cx="60" cy="60" r="52" />
-            </svg>
-            <div class="center"><b>96.7</b><span>PERCENT</span></div>
-          </div>
-          <div class="legend">
-            <div><i style="background: var(--indigo)"></i>带角标回答 122</div>
-            <div><i style="background: #b9b2a2"></i>拒答（无可靠证据）8</div>
-            <div><i style="background: var(--ochre)"></i>越界角标 0</div>
+        <div v-if="sessionsLoaded && recentSessions.length" class="s-list">
+          <div v-for="s in recentSessions" :key="s.sessionId" class="s-row">
+            <span class="s-time">{{ formatTime(s.updatedAt) }}</span>
+            <span class="s-title" :title="s.title || '未命名会话'">{{ s.title || '未命名会话' }}</span>
+            <span class="s-count">{{ s.messageCount }} 条</span>
           </div>
         </div>
-
-        <div class="rule"></div>
-
-        <div class="panel-head tight">
-          <h3 class="small">风险类别分布</h3>
-          <span class="meta">30 D</span>
-        </div>
-        <div class="bars">
-          <div v-for="b in riskBars" :key="b.name" class="bar-row">
-            <span class="name">{{ b.name }}</span>
-            <span class="bar-track">
-              <i class="bar-fill" :class="{ warm: b.warm }" :style="{ width: b.w + '%' }"></i>
-            </span>
-            <span class="v">{{ b.v }}</span>
-          </div>
-        </div>
+        <div v-else class="empty">{{ sessionsLoaded ? '暂无会话记录' : '正在加载…' }}</div>
       </div>
-    </div>
+    </section>
 
-    <div class="trace">
-      <div class="trace-head">
-        <h3>一次提问的溯源路径</h3>
-        <span class="meta">TRACE · 28 MS</span>
-      </div>
-      <svg viewBox="0 0 1120 200" preserveAspectRatio="xMinYMid meet">
-        <rect class="pill" x="0" y="8" width="250" height="38" rx="3" />
-        <text class="pill-t" x="16" y="32">向量召回 · 语义相近</text>
-        <text class="pill-s" x="234" y="32" text-anchor="end">15</text>
-
-        <rect class="pill" x="0" y="66" width="250" height="38" rx="3" />
-        <text class="pill-t" x="16" y="90">BM25 · 字面精确</text>
-        <text class="pill-s" x="234" y="90" text-anchor="end">15</text>
-
-        <rect class="pill" x="0" y="124" width="250" height="38" rx="3" />
-        <text class="pill-t" x="16" y="148">药品库 · 结构字段</text>
-        <text class="pill-s" x="234" y="148" text-anchor="end">3</text>
-
-        <path class="flow live" d="M250 27 C300 27 300 85 326 85" />
-        <path class="flow live" d="M250 85 L326 85" />
-        <path class="flow live" d="M250 143 C300 143 300 85 326 85" />
-
-        <circle class="merge" cx="340" cy="85" r="14" />
-        <text x="340" y="89" text-anchor="middle" class="merge-t">RRF</text>
-
-        <path class="flow" d="M354 85 L382 85" marker-end="url(#arrowEnd)" />
-        <rect class="pill" x="386" y="66" width="170" height="38" rx="3" />
-        <text class="pill-t" x="402" y="90">门控 0.88 / 6.5</text>
-
-        <path class="flow" d="M556 85 L584 85" marker-end="url(#arrowEnd)" />
-        <rect class="pill" x="588" y="66" width="152" height="38" rx="3" />
-        <text class="pill-t" x="604" y="90">证据 5 条</text>
-
-        <path class="flow" d="M740 85 L768 85" marker-end="url(#arrowEnd)" />
-        <rect class="pill" x="772" y="66" width="262" height="38" rx="3" />
-        <text class="pill-t" x="788" y="90">回答 · 角标 [1]–[5]</text>
-
-        <text x="0" y="188">每次提问都记录：命中来源、两路最高分、融合排名、最终角标范围</text>
-        <text x="1120" y="188" text-anchor="end">三路 → 一份证据</text>
-        <defs>
-          <marker id="arrowEnd" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-            <path d="M2 1L8 5L2 9" fill="none" stroke="#16202e" stroke-opacity=".35" stroke-width="1.4" stroke-linecap="round" />
-          </marker>
-        </defs>
-      </svg>
-    </div>
-
-    <div class="rule"></div>
-
-    <div class="panel">
+    <!-- 最近入库 -->
+    <section class="card last">
       <div class="panel-head">
         <h3>最近入库</h3>
-        <span class="meta">{{ docCount }} DOCS · {{ chunkCount }} CHUNKS</span>
+        <span class="meta">{{ docsCount }} DOCS</span>
       </div>
       <table class="lib-table">
         <thead>
-          <tr><th>文档</th><th>切片</th><th>大小</th><th>入库时间</th></tr>
+          <tr><th>文档</th><th>大小</th><th>入库时间</th></tr>
         </thead>
         <tbody>
           <tr v-for="d in recentDocs" :key="d.docId || d.fileName">
             <td>{{ d.fileName }}</td>
-            <td class="num">{{ d.chunks }}</td>
             <td class="num">{{ formatSize(d.bytes) }}</td>
             <td class="num">{{ formatTime(d.ingestedAt) }}</td>
           </tr>
-          <tr v-if="!recentDocs.length">
-            <td colspan="4" class="empty">服务未连接，暂无文档数据</td>
+          <tr v-if="docsLoaded && !recentDocs.length">
+            <td colspan="3" class="empty">暂无文档数据</td>
           </tr>
         </tbody>
       </table>
-      <p class="footnote">除知识库规模与命中率外，其余指标为演示数据。</p>
-    </div>
+    </section>
+
+    <footer class="foot">
+      <span>本系统仅供技术研究与演示，不构成诊疗建议</span>
+      <span>AIMIN · CLINICAL ATLAS</span>
+    </footer>
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
-import { useUserStore } from '@/store'
-import { listDocs } from '@/api/agent'
+import { computed, nextTick, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { useUserStore, useAppStore } from '@/store'
+import { getStats, listDocs, listSessions } from '@/api/agent'
 import heroImg from '@/assets/watercolor/processed/hero-bust.webp'
 
+const router = useRouter()
 const userStore = useUserStore()
+const appStore = useAppStore()
+
+// ---------- 真实数据 ----------
+const stats = ref(null)
+const statsLoaded = ref(false)
+const sessions = ref([])
+const sessionsLoaded = ref(false)
 const docs = ref([])
+const docsLoaded = ref(false)
 
-const docCount = computed(() => docs.value.length)
-const chunkCount = computed(() =>
-  docs.value.reduce((sum, d) => sum + (Number(d?.chunks) || 0), 0)
-)
+const isDemo = computed(() => appStore.isDemoMode)
+const docsCount = computed(() => docs.value.length || Number(appStore.agentStatus?.docs) || 0)
 
-const recentDocs = computed(() => docs.value.slice(0, 6))
+const metricCards = computed(() => [
+  { label: '累计会话', value: stats.value?.sessions ?? 0, unit: '个', sub: '独立咨询会话', tone: 'var(--indigo)' },
+  { label: '累计提问', value: stats.value?.questions ?? 0, unit: '次', sub: '含被拦截的提问', tone: 'var(--sage-deep)' },
+  {
+    label: '风险拦截',
+    value: stats.value?.riskInterrupted ?? 0,
+    unit: '次',
+    sub: `已确认 ${stats.value?.riskConfirmed ?? 0} · 放弃 ${stats.value?.riskRejected ?? 0}`,
+    tone: 'var(--ochre-deep)'
+  },
+  { label: '知识库文档', value: docsCount.value, unit: '篇', sub: '回答均附原文出处', tone: 'var(--gold)' }
+])
 
+// ---------- 问候与日期 ----------
+const greeting = computed(() => {
+  const h = new Date().getHours()
+  if (h < 5) return '夜深了'
+  if (h < 9) return '早上好'
+  if (h < 12) return '上午好'
+  if (h < 14) return '中午好'
+  if (h < 18) return '下午好'
+  return '晚上好'
+})
+const displayName = computed(() => {
+  const n = (userStore.nickname || '').trim()
+  return n || '你好'
+})
 const today = computed(() => {
   const d = new Date()
   return `${d.getMonth() + 1}月${d.getDate()}日`
 })
+const weekday = computed(() => ['日', '一', '二', '三', '四', '五', '六'][new Date().getDay()])
 
-const kpis = [
-  { label: '今日问答', value: 128, unit: '', delta: '+12.4%', tone: 'indigo', spark: 'M0 20 L14 17 L28 19 L42 12 L56 14 L70 8 L84 10 L100 4' },
-  { label: '证据命中率', value: 96.7, dec: 1, unit: '%', delta: 'Recall@5', tone: 'sage', spark: 'M0 14 L14 12 L28 15 L42 11 L56 13 L70 9 L84 11 L100 7' },
-  { label: '平均首字延迟', value: 1.8, dec: 1, unit: 's', delta: '-0.3s', tone: 'gold', spark: 'M0 8 L14 11 L28 9 L42 14 L56 12 L70 16 L84 15 L100 19' },
-  { label: '风险拦截', value: 7, unit: '次', delta: '需确认', warn: true, tone: 'rose', spark: 'M0 19 L14 18 L28 20 L42 16 L56 17 L70 13 L84 15 L100 9' }
-]
+function goWorkbench() {
+  router.push('/agent/index')
+}
 
-const points = [
-  { x: 0, y: 168, v: 62, date: '10/10' },
-  { x: 50, y: 152, v: 71, date: '10/11' },
-  { x: 100, y: 160, v: 68, date: '10/12' },
-  { x: 150, y: 128, v: 84, date: '10/13' },
-  { x: 200, y: 140, v: 79, date: '10/14' },
-  { x: 250, y: 104, v: 92, date: '10/15' },
-  { x: 300, y: 118, v: 88, date: '10/16' },
-  { x: 350, y: 74, v: 103, date: '10/17' },
-  { x: 400, y: 88, v: 97, date: '10/18' },
-  { x: 450, y: 58, v: 112, date: '10/19' },
-  { x: 500, y: 66, v: 108, date: '10/20' },
-  { x: 550, y: 36, v: 121, date: '10/21' },
-  { x: 600, y: 44, v: 117, date: '10/22' },
-  { x: 660, y: 20, v: 128, date: '10/23' }
-]
+// ---------- 折线图：由真实 daily 数据生成坐标 ----------
+const W = 660
+const TOP = 22
+const BOTTOM = 205
+
+const chartPoints = computed(() => {
+  const daily = stats.value?.daily ?? []
+  if (!daily.length) return []
+  const qs = daily.map((d) => Number(d.questions) || 0)
+  const max = Math.max(1, ...qs)
+  const span = BOTTOM - TOP
+  const step = daily.length > 1 ? W / (daily.length - 1) : W
+  return daily.map((d, i) => ({
+    x: Number((i * step).toFixed(1)),
+    y: Number((BOTTOM - (qs[i] / max) * span).toFixed(1)),
+    v: qs[i],
+    date: d.date
+  }))
+})
+
+const hasDaily = computed(() => chartPoints.value.some((p) => p.v > 0))
+const linePath = computed(() =>
+  chartPoints.value.map((p, i) => `${i ? 'L' : 'M'}${p.x} ${p.y}`).join(' ')
+)
+const areaPath = computed(() =>
+  chartPoints.value.length ? `${linePath.value} L${W} ${BOTTOM} L0 ${BOTTOM} Z` : ''
+)
+const axisLabels = computed(() => {
+  const pts = chartPoints.value
+  if (pts.length < 3) return ['', '', '']
+  const mid = pts[Math.floor(pts.length / 2)]
+  return [pts[0].date, mid.date, pts[pts.length - 1].date]
+})
 
 const hoverIdx = ref(-1)
-const hotIdx = 11
-const tipLeft = computed(() => (hoverIdx.value >= 0 ? (points[hoverIdx.value].x / 660) * 100 + '%' : '0'))
-const tipTop = computed(() => (hoverIdx.value >= 0 ? (points[hoverIdx.value].y / 230) * 100 - 12 + '%' : '0'))
+const tipLeft = computed(() =>
+  hoverIdx.value >= 0 ? (chartPoints.value[hoverIdx.value].x / W) * 100 + '%' : '0'
+)
+const tipTop = computed(() =>
+  hoverIdx.value >= 0 ? (chartPoints.value[hoverIdx.value].y / 250) * 100 - 12 + '%' : '0'
+)
 
 function onChartMove(e) {
   const svg = e.currentTarget.querySelector('svg')
   if (!svg) return
   const rect = svg.getBoundingClientRect()
-  const ratio = (e.clientX - rect.left) / rect.width
-  const x = ratio * 660
+  const x = ((e.clientX - rect.left) / rect.width) * W
   let best = 0
   let min = Infinity
-  points.forEach((p, i) => {
+  chartPoints.value.forEach((p, i) => {
     const d = Math.abs(p.x - x)
     if (d < min) {
       min = d
@@ -280,33 +259,34 @@ function onChartMove(e) {
   hoverIdx.value = best
 }
 
+// ---------- 数字滚动（数据到达后触发；帧被挂起时兜底显示真实数值） ----------
 function runCounters() {
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  document.querySelectorAll('[data-count]').forEach((el) => {
-    const target = parseFloat(el.dataset.count)
-    const dec = parseInt(el.dataset.dec || '0', 10)
+  document.querySelectorAll('.metric [data-count]').forEach((el) => {
+    const target = parseFloat(el.dataset.count) || 0
     if (reduce) {
-      el.textContent = target.toFixed(dec)
+      el.textContent = String(target)
       return
     }
     const t0 = performance.now()
-    const dur = 1100
+    const dur = 1000
+    let done = false
     const tick = (t) => {
       const p = Math.min(1, (t - t0) / dur)
-      el.textContent = (target * (1 - Math.pow(1 - p, 3))).toFixed(dec)
+      el.textContent = String(Math.round(target * (1 - Math.pow(1 - p, 3))))
       if (p < 1) requestAnimationFrame(tick)
+      else done = true
     }
     requestAnimationFrame(tick)
+    setTimeout(() => {
+      if (!done) el.textContent = String(target)
+    }, dur + 250)
   })
 }
 
-const riskBars = [
-  { name: '剂量与用法', v: 34, w: 100 },
-  { name: '联合用药', v: 21, w: 62 },
-  { name: '特殊人群', v: 18, w: 53, warm: true },
-  { name: '处方与操作', v: 12, w: 35 },
-  { name: '剂量调整', v: 9, w: 26 }
-]
+// ---------- 列表 ----------
+const recentSessions = computed(() => sessions.value.slice(0, 8))
+const recentDocs = computed(() => docs.value.slice(0, 6))
 
 function formatSize(bytes) {
   const n = Number(bytes) || 0
@@ -315,37 +295,36 @@ function formatSize(bytes) {
 }
 
 function formatTime(ts) {
-  const n = Number(ts)
-  if (!n) return '—'
-  const d = new Date(n)
+  if (!ts) return '—'
+  const d = typeof ts === 'number' ? new Date(ts) : new Date(String(ts).replace(' ', 'T'))
+  if (Number.isNaN(d.getTime())) return String(ts)
   const p = (v) => String(v).padStart(2, '0')
   return `${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`
 }
 
-const heatRows = computed(() => {
-  const days = ['一', '二', '三', '四', '五', '六', '日']
-  let seed = 7
-  const rnd = () => (seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff
-  return days.map((day) => ({
-    day,
-    cells: Array.from({ length: 24 }, (_, h) => {
-      const peak = (h >= 9 && h <= 11) || (h >= 15 && h <= 17)
-      const base = peak ? 0.82 : h >= 8 && h <= 19 ? 0.42 : 0.12
-      const v = base * (0.55 + rnd() * 0.6)
-      return v > 0.72 ? 5 : v > 0.55 ? 4 : v > 0.38 ? 3 : v > 0.2 ? 2 : v > 0.08 ? 1 : 0
-    })
-  }))
-})
-
 onMounted(async () => {
-  runCounters()
-  try {
-    const res = await listDocs()
-    const list = res?.data ?? res
-    if (Array.isArray(list)) docs.value = list
-  } catch (e) {
-    /* 后端未启动时保持空态 */
+  // 四路数据互不阻塞：单接口失败只影响对应面板的空态
+  const [st, ss, dd] = await Promise.allSettled([
+    getStats(14),
+    listSessions(8),
+    listDocs()
+  ])
+  if (st.status === 'fulfilled') stats.value = st.value?.data ?? null
+  statsLoaded.value = true
+  if (ss.status === 'fulfilled') {
+    const list = ss.value?.data ?? ss.value
+    if (Array.isArray(list)) sessions.value = list
   }
+  sessionsLoaded.value = true
+  if (dd.status === 'fulfilled') {
+    const list = dd.value?.data ?? dd.value
+    if (Array.isArray(list)) docs.value = list
+  }
+  docsLoaded.value = true
+  // 状态复用 layout 已发起的请求；demo 徽标与文档数兜底
+  await appStore.loadAgentStatus()
+  await nextTick()
+  runCounters()
 })
 </script>
 
@@ -355,27 +334,117 @@ onMounted(async () => {
   flex-direction: column;
 }
 
-.hero {
-  display: grid;
-  grid-template-columns: 1.05fr 0.95fr;
-  gap: 34px;
-  align-items: end;
-  margin-bottom: 30px;
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
-.hero-copy .lede {
-  margin-top: 8px;
+.hero {
+  display: grid;
+  grid-template-columns: 1.08fr 0.92fr;
+  gap: 40px;
+  align-items: end;
+  animation: rise 0.8s var(--ease) both;
+}
+
+.eyebrow {
+  display: block;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  color: var(--ink-3);
+}
+
+.headline {
+  margin: 14px 0 0;
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: clamp(36px, 4.2vw, 54px);
+  line-height: 1.16;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.lede {
+  margin: 18px 0 0;
+  font-size: 15px;
+  line-height: 1.9;
   color: var(--ink-2);
-  font-size: 13.5px;
-  max-width: 56ch;
+  max-width: 44ch;
+
+  b {
+    color: var(--indigo);
+    font-weight: 600;
+  }
+}
+
+.hero-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 30px;
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border: none;
+  cursor: pointer;
+  background: var(--indigo);
+  color: #f4f7f3;
+  font-family: var(--sans);
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  padding: 13px 30px;
+  border-radius: 999px;
+  box-shadow: 0 14px 28px -14px rgba(67, 111, 100, 0.55);
+  transition: background 0.3s var(--ease), transform 0.3s var(--ease), box-shadow 0.3s var(--ease);
+
+  .arrow {
+    font-style: normal;
+    transition: transform 0.3s var(--ease);
+  }
+
+  &:hover {
+    background: #3a6157;
+    transform: translateY(-1px);
+    box-shadow: 0 18px 34px -14px rgba(67, 111, 100, 0.62);
+
+    .arrow {
+      transform: translateX(3px);
+    }
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.demo-pill {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--ochre-deep);
+  border: 1px solid rgba(176, 126, 92, 0.35);
+  background: var(--ochre-soft);
+  padding: 7px 15px;
+  border-radius: 999px;
 }
 
 .hero-art {
   position: relative;
-  height: 250px;
+  height: 320px;
   overflow: hidden;
-  mask-image: linear-gradient(to right, transparent 0%, #000 20%, #000 90%, transparent 100%),
-    linear-gradient(to bottom, transparent 0%, #000 14%, #000 78%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0%, #000 22%, #000 88%, transparent 100%),
+    linear-gradient(to bottom, transparent 0%, #000 16%, #000 80%, transparent 100%);
   -webkit-mask-composite: source-in;
   mask-composite: intersect;
 
@@ -383,112 +452,151 @@ onMounted(async () => {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: 50% 6%;
-    opacity: 1;
-    filter: saturate(1.16) contrast(1.1);
+    object-position: 50% 8%;
+    filter: saturate(1.14) contrast(1.08);
   }
 }
 
-.kpis {
+.block {
+  margin-top: 60px;
+  animation: rise 0.8s var(--ease) 0.08s both;
+}
+
+.block-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 20px;
+
+  h2 {
+    margin: 0;
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: 24px;
+    color: var(--ink);
+  }
+
+  .meta {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    color: var(--ink-3);
+  }
+}
+
+.metrics {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
+  gap: 18px;
 }
 
-.kpi {
+.metric {
   position: relative;
-  padding: 18px 20px 16px;
-  border-right: 1px solid var(--line);
+  overflow: hidden;
+  background: #f6f8f4;
+  border: 1px solid var(--line-2);
+  border-radius: 20px;
+  padding: 26px 26px 22px;
+  transition: transform 0.4s var(--ease), box-shadow 0.4s var(--ease);
 
-  &:last-child {
-    border-right: none;
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 2px;
+    width: 0;
+    background: var(--tone, var(--indigo));
+    transition: width 0.45s var(--ease);
   }
 
-  .label {
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 2px 4px rgba(44, 56, 52, 0.04), 0 20px 44px -20px rgba(44, 56, 52, 0.22);
+
+    &::before {
+      width: 100%;
+    }
+  }
+
+  .m-label {
     display: block;
     font-family: var(--mono);
     font-size: 10.5px;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.16em;
     color: var(--ink-3);
-    margin-bottom: 8px;
   }
 
-  .val {
+  .m-val {
+    margin-top: 14px;
     font-family: var(--serif);
-    font-size: 38px;
+    font-size: 44px;
     line-height: 1;
-    letter-spacing: -0.01em;
+    color: var(--tone, var(--ink));
 
     small {
-      font-size: 14px;
       font-family: var(--sans);
+      font-size: 13px;
       color: var(--ink-2);
-      margin-left: 4px;
+      margin-left: 5px;
+    }
+
+    .pending {
+      color: var(--ink-3);
     }
   }
 
-  .delta {
-    position: absolute;
-    right: 18px;
-    top: 20px;
-    font-family: var(--mono);
-    font-size: 10.5px;
-    color: var(--sage);
-
-    &.down {
-      color: var(--ochre);
-    }
-  }
-
-  svg {
+  .m-sub {
     display: block;
     margin-top: 12px;
-    width: 100%;
-    height: 26px;
-    overflow: visible;
-
-    path {
-      fill: none;
-      stroke: var(--indigo);
-      stroke-width: 1.2;
-      stroke-linecap: round;
-      opacity: 0.42;
-      transition: opacity 0.3s, stroke-width 0.3s;
-    }
-  }
-
-  &:hover svg path {
-    opacity: 0.9;
-    stroke-width: 1.5;
+    font-size: 12px;
+    color: var(--ink-3);
   }
 }
 
 .grid-2 {
   display: grid;
-  grid-template-columns: 1.55fr 1fr;
-  gap: 28px;
-  margin-top: 28px;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 18px;
+  margin-top: 18px;
+  animation: rise 0.8s var(--ease) 0.16s both;
+}
+
+.card {
+  background: #f6f8f4;
+  border: 1px solid var(--line-2);
+  border-radius: 20px;
+  padding: 26px 28px;
+
+  &.last {
+    margin-top: 18px;
+    animation: rise 0.8s var(--ease) 0.24s both;
+  }
 }
 
 .panel-head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  margin-bottom: 14px;
+  margin-bottom: 18px;
 
   h3 {
+    margin: 0;
     font-family: var(--serif);
-    font-size: 17px;
     font-weight: 400;
+    font-size: 17px;
+    color: var(--ink);
 
-    &.small {
-      font-size: 14px;
+    &::before {
+      content: '';
+      display: inline-block;
+      width: 3px;
+      height: 13px;
+      background: var(--ochre);
+      margin-right: 9px;
+      vertical-align: -1px;
+      opacity: 0.85;
     }
-  }
-
-  &.tight {
-    margin-bottom: 6px;
   }
 
   .meta {
@@ -500,7 +608,9 @@ onMounted(async () => {
 }
 
 .chart {
-  height: 240px;
+  position: relative;
+  height: 260px;
+  cursor: crosshair;
 
   svg {
     width: 100%;
@@ -528,23 +638,30 @@ onMounted(async () => {
   .line {
     fill: none;
     stroke: var(--indigo);
-    stroke-width: 1.6;
+    stroke-width: 1.8;
     stroke-linejoin: round;
     stroke-linecap: round;
-    stroke-dasharray: 2000;
-    stroke-dashoffset: 2000;
-    animation: draw 2.2s var(--ease) 0.3s forwards;
+    stroke-dasharray: 2200;
+    stroke-dashoffset: 2200;
+    animation: draw 2s var(--ease) 0.3s forwards;
   }
 
   .pt {
-    fill: var(--paper);
+    fill: #f6f8f4;
     stroke: var(--indigo);
     stroke-width: 1.4;
+    transition: r 0.18s var(--ease), fill 0.18s;
 
     &.hot {
       fill: var(--ochre);
       stroke: var(--ochre);
     }
+  }
+
+  .crosshair {
+    stroke: rgba(44, 56, 52, 0.3);
+    stroke-width: 1;
+    stroke-dasharray: 3 3;
   }
 
   @keyframes draw {
@@ -554,300 +671,71 @@ onMounted(async () => {
   }
 }
 
-.heat-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  margin: 18px 0 8px;
-
-  h4 {
-    font-family: var(--serif);
-    font-size: 14px;
-    font-weight: 400;
-  }
-
-  span {
-    font-family: var(--mono);
-    font-size: 10px;
-    letter-spacing: 0.12em;
-    color: var(--ink-3);
-  }
-}
-
-.heat {
-  display: grid;
-  grid-template-columns: 20px repeat(24, 1fr);
-  gap: 3px;
-  max-width: 640px;
-
-  .lab {
-    font-family: var(--mono);
-    font-size: 9px;
-    color: var(--ink-3);
-    line-height: 12px;
-    height: 12px;
-  }
-
-  i {
-    display: block;
-    aspect-ratio: 1;
-    border-radius: 2px;
-    background: var(--paper-3);
-    transition: transform 0.18s var(--ease), background 0.18s;
-
-    &[data-lv='1'] { background: rgba(36, 65, 95, 0.14); }
-    &[data-lv='2'] { background: rgba(36, 65, 95, 0.26); }
-    &[data-lv='3'] { background: rgba(36, 65, 95, 0.42); }
-    &[data-lv='4'] { background: rgba(36, 65, 95, 0.6); }
-    &[data-lv='5'] { background: var(--indigo); }
-
-    &:hover {
-      transform: scale(1.45);
-      background: var(--ochre);
-      position: relative;
-      z-index: 2;
-    }
-  }
-}
-
-.heat-foot {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 8px;
+.tip {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  background: var(--ink);
+  color: var(--paper);
   font-family: var(--mono);
-  font-size: 9.5px;
-  color: var(--ink-3);
-  letter-spacing: 0.08em;
-  max-width: 640px;
-
-  .scale {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-
-    i {
-      width: 9px;
-      height: 9px;
-      display: block;
-      border-radius: 1.5px;
-    }
-  }
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  padding: 5px 9px;
+  border-radius: 6px;
+  pointer-events: none;
+  white-space: nowrap;
+  box-shadow: 0 10px 24px -14px rgba(0, 0, 0, 0.6);
+  z-index: 3;
 }
 
-.donut-wrap {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  padding-top: 4px;
-}
-
-.donut {
-  position: relative;
-  width: 128px;
-  height: 128px;
-  flex: 0 0 128px;
-
-  svg {
-    width: 100%;
-    height: 100%;
-    transform: rotate(-90deg);
-  }
-
-  circle {
-    fill: none;
-    stroke-width: 6;
-  }
-
-  .track {
-    stroke: var(--paper-3);
-  }
-
-  .val {
-    stroke: var(--indigo);
-    stroke-linecap: round;
-    stroke-dasharray: 316 999;
-  }
-
-  .center {
-    position: absolute;
-    inset: 0;
-    display: grid;
-    place-items: center;
-    text-align: center;
-
-    b {
-      display: block;
-      font-family: var(--serif);
-      font-size: 26px;
-      font-weight: 400;
-      line-height: 1;
-    }
-
-    span {
-      font-family: var(--mono);
-      font-size: 9px;
-      color: var(--ink-3);
-      letter-spacing: 0.12em;
-    }
-  }
-}
-
-.legend {
+.s-list {
   display: flex;
   flex-direction: column;
-  gap: 11px;
-  font-size: 12px;
-
-  div {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--ink-2);
-  }
-
-  i {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    display: inline-block;
-  }
 }
 
-.bars {
-  display: flex;
-  flex-direction: column;
-  gap: 13px;
-  margin-top: 4px;
-}
-
-.bar-row {
+.s-row {
   display: grid;
-  grid-template-columns: 76px 1fr 32px;
+  grid-template-columns: 74px 1fr auto;
   align-items: center;
   gap: 12px;
-  font-size: 12px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--line-2);
+  transition: background 0.2s;
 
-  .name {
-    color: var(--ink-2);
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.5);
+  }
+
+  .s-time {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--ink-3);
+  }
+
+  .s-title {
+    font-size: 12.5px;
+    color: var(--ink);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
-  .bar-track {
-    height: 6px;
-    background: var(--paper-3);
-    border-radius: 3px;
-    overflow: hidden;
-  }
-
-  .bar-fill {
-    display: block;
-    height: 100%;
-    background: var(--indigo);
-    opacity: 0.85;
-    border-radius: 3px;
-    animation: bar-grow 1.1s var(--ease) 0.15s both;
-
-    &.warm {
-      background: var(--ochre);
-      opacity: 0.8;
-    }
-  }
-
-  .v {
+  .s-count {
     font-family: var(--mono);
-    font-size: 11px;
+    font-size: 10.5px;
     color: var(--ink-3);
-    text-align: right;
   }
 }
 
-.trace {
-  margin-top: 28px;
-  border-top: 1px solid var(--line);
-  padding-top: 20px;
-
-  svg {
-    width: 100%;
-    height: 190px;
-    display: block;
-    overflow: visible;
-  }
-
-  .flow {
-    fill: none;
-    stroke: var(--line);
-    stroke-width: 1;
-    stroke-dasharray: 3 4;
-
-    &.live {
-      stroke: var(--indigo);
-      stroke-opacity: 0.4;
-      stroke-dasharray: none;
-      animation: dashmove 6s linear infinite;
-    }
-  }
-
-  @keyframes dashmove {
-    to {
-      stroke-dashoffset: -60;
-    }
-  }
-
-  text {
-    font-family: var(--mono);
-    font-size: 10.5px;
-    fill: var(--ink-3);
-    letter-spacing: 0.04em;
-  }
-
-  .pill {
-    fill: rgba(42, 74, 107, 0.06);
-    stroke: none;
-  }
-
-  .pill-t {
-    font-family: var(--sans);
-    font-size: 12.5px;
-    fill: var(--ink);
-    letter-spacing: 0;
-  }
-
-  .pill-s {
-    font-family: var(--mono);
-    font-size: 10.5px;
-    fill: var(--ink-3);
-  }
-
-  .merge {
-    fill: var(--indigo);
-  }
-
-  .merge-t {
-    fill: var(--paper);
-    font-size: 9px;
-  }
-}
-
-.trace-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  margin-bottom: 6px;
-
-  h3 {
-    font-family: var(--serif);
-    font-size: 17px;
-    font-weight: 400;
-  }
-
-  .meta {
-    font-family: var(--mono);
-    font-size: 10.5px;
-    letter-spacing: 0.12em;
-    color: var(--ink-3);
-  }
+.empty {
+  padding: 52px 0;
+  text-align: center;
+  font-size: 12.5px;
+  letter-spacing: 0.08em;
+  color: var(--ink-3);
 }
 
 .lib-table {
@@ -876,176 +764,53 @@ onMounted(async () => {
     }
   }
 
-  .empty {
-    color: var(--ink-3);
-    text-align: center;
-    padding: 24px 0;
+  tbody tr {
+    transition: background 0.2s;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.5);
+    }
   }
 }
 
-.footnote {
-  margin-top: 12px;
+.foot {
+  margin-top: 52px;
+  padding: 18px 0 6px;
+  border-top: 1px solid var(--line-2);
+  display: flex;
+  justify-content: space-between;
   font-family: var(--mono);
   font-size: 10px;
+  letter-spacing: 0.08em;
   color: var(--ink-3);
-  letter-spacing: 0.06em;
+  animation: rise 0.8s var(--ease) 0.3s both;
 }
 
 @media (max-width: 1100px) {
-  .grid-2 {
-    grid-template-columns: 1fr;
-  }
   .hero {
     grid-template-columns: 1fr;
   }
+
   .hero-art {
-    height: 170px;
+    height: 200px;
   }
-  .kpis {
+
+  .metrics {
     grid-template-columns: 1fr 1fr;
   }
-  .kpi:nth-child(2) {
-    border-right: none;
+
+  .grid-2 {
+    grid-template-columns: 1fr;
   }
 }
 
-/* ---- 交互与色彩层次 ---- */
-.kpi {
-  transition: background 0.3s ease;
-  animation: kpi-in 0.6s var(--ease) both;
-
-  &:nth-child(2) { animation-delay: 0.06s; }
-  &:nth-child(3) { animation-delay: 0.12s; }
-  &:nth-child(4) { animation-delay: 0.18s; }
-
-  &::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    height: 2px;
-    width: 0;
-    background: var(--tone, var(--indigo));
-    transition: width 0.45s var(--ease);
-  }
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.22);
-  }
-
-  &:hover::before {
-    width: 100%;
-  }
-
-  &:hover svg path {
-    opacity: 1;
-    stroke-width: 1.6;
-  }
-
-  svg path {
-    stroke: var(--tone, var(--indigo));
+@media (prefers-reduced-motion: reduce) {
+  .hero,
+  .block,
+  .grid-2,
+  .card.last,
+  .foot {
+    animation: none;
   }
 }
-
-@keyframes bar-grow {
-  from { width: 0; }
-}
-
-@keyframes kpi-in {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: none; }
-}
-
-.tone-indigo { --tone: #24415f; }
-.tone-sage { --tone: #4f7358; }
-.tone-gold { --tone: #a8792c; }
-.tone-rose { --tone: #8a4b52; }
-
-.chart {
-  position: relative;
-  cursor: crosshair;
-}
-
-.crosshair {
-  stroke: rgba(19, 31, 43, 0.3);
-  stroke-width: 1;
-  stroke-dasharray: 3 3;
-}
-
-.tip {
-  position: absolute;
-  transform: translate(-50%, -100%);
-  background: var(--ink);
-  color: var(--paper);
-  font-family: var(--mono);
-  font-size: 10.5px;
-  letter-spacing: 0.04em;
-  padding: 5px 8px;
-  border-radius: 2px;
-  pointer-events: none;
-  white-space: nowrap;
-  box-shadow: 0 10px 24px -14px rgba(0, 0, 0, 0.6);
-  z-index: 3;
-}
-
-.pt {
-  transition: r 0.18s var(--ease), fill 0.18s;
-}
-
-.donut .val {
-  animation: ring-in 1.4s var(--ease) 0.2s both;
-}
-
-@keyframes ring-in {
-  from { stroke-dasharray: 0 999; }
-  to { stroke-dasharray: 316 999; }
-}
-
-.donut:hover .val {
-  stroke: #35587a;
-}
-
-.legend div {
-  transition: transform 0.25s var(--ease);
-}
-
-.legend div:hover {
-  transform: translateX(2px);
-}
-
-.bar-row {
-  transition: background 0.25s;
-
-  &:hover .bar-fill {
-    opacity: 1;
-  }
-}
-
-.lib-table tbody tr {
-  transition: background 0.2s;
-}
-
-
-/* ---- 色彩层次收尾 ---- */
-.kpi .val .num {
-  color: var(--tone, var(--ink));
-}
-
-.panel-head h3::before {
-  content: '';
-  display: inline-block;
-  width: 3px;
-  height: 13px;
-  background: var(--ochre);
-  margin-right: 9px;
-  vertical-align: -1px;
-  opacity: 0.85;
-}
-
-.heat i[data-lv='1'] { background: rgba(79, 115, 88, 0.18); }
-.heat i[data-lv='2'] { background: rgba(79, 115, 88, 0.34); }
-.heat i[data-lv='3'] { background: rgba(36, 65, 95, 0.38); }
-.heat i[data-lv='4'] { background: rgba(36, 65, 95, 0.6); }
-.heat i[data-lv='5'] { background: var(--indigo); }
-
 </style>

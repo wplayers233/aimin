@@ -537,7 +537,7 @@ h2 {
   margin: 0;
   font-size: 20px;
   font-weight: 600;
-  color: #303133;
+  color: var(--ink);
 }
 
 /* 状态图标和文本样式 */
@@ -549,23 +549,23 @@ h2 {
 .status-text {
   font-size: 13px;
   vertical-align: middle;
-  color: #000000;
+  color: var(--ink);
 }
 
 .status-enabled {
-  color: #000000;
+  color: var(--ink);
 }
 
 .status-disabled {
-  color: #000000;
+  color: var(--ink);
 }
 
 .status-hidden {
-  color: #000000;
+  color: var(--ink);
 }
 
 .status-visible {
-  color: #000000;
+  color: var(--ink);
 }
 
 /* 操作按钮容器 */

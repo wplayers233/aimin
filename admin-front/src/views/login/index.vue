@@ -198,8 +198,8 @@ const handleLogin = async () => {
     position: absolute;
     inset: 0;
     pointer-events: none;
-    background: linear-gradient(90deg, rgba(236, 226, 207, 0.3) 0%, transparent 16%, transparent 76%, var(--paper) 100%),
-      linear-gradient(0deg, rgba(236, 226, 207, 0.94) 0%, rgba(236, 226, 207, 0.5) 20%, transparent 38%);
+    background: linear-gradient(90deg, rgba(245, 241, 232, 0.3) 0%, transparent 16%, transparent 76%, var(--paper) 100%),
+      linear-gradient(0deg, rgba(245, 241, 232, 0.94) 0%, rgba(245, 241, 232, 0.5) 20%, transparent 38%);
   }
 
   .wash {
@@ -388,9 +388,9 @@ const handleLogin = async () => {
       flex: 0 0 auto;
       font-family: var(--mono);
       font-size: 12px;
-      color: var(--ochre);
+      color: var(--ochre-deep);
       letter-spacing: 0.06em;
-      border-bottom: 1px dashed rgba(180, 85, 45, 0.4);
+      border-bottom: 1px dashed rgba(176, 126, 92, 0.4);
       padding-bottom: 2px;
       transition: opacity 0.2s;
 
@@ -414,8 +414,8 @@ const handleLogin = async () => {
     .enter {
       height: 42px;
       padding: 0 22px;
-      background: var(--ink);
-      border-color: var(--ink);
+      background: var(--indigo);
+      border-color: var(--indigo);
       color: var(--paper);
       font-size: 13px;
       letter-spacing: 0.06em;
@@ -436,8 +436,8 @@ const handleLogin = async () => {
       }
 
       &:hover {
-        background: var(--indigo);
-        border-color: var(--indigo);
+        background: var(--indigo-2);
+        border-color: var(--indigo-2);
         transform: translateX(3px);
       }
     }

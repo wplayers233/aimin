@@ -28,13 +28,13 @@ const goHome = () => {
 
 h1 {
   font-size: 80px;
-  color: #409EFF;
+  color: var(--indigo);
   margin-bottom: 20px;
 }
 
 h2 {
   font-size: 24px;
-  color: #606266;
+  color: var(--ink-2);
   margin-bottom: 30px;
 }
 </style> 

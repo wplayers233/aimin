@@ -116,34 +116,6 @@
         </el-button>
       </div>
     </main>
-
-    <!-- 右：会话概览 -->
-    <aside class="profile-panel">
-      <div class="profile-header">会话概览</div>
-      <div class="overview-list">
-        <div class="overview-item">
-          <span class="ov-label">当前会话</span>
-          <span class="ov-value mono">{{ sessionShortId }}</span>
-        </div>
-        <div class="overview-item">
-          <span class="ov-label">消息数</span>
-          <span class="ov-value">{{ messages.length }}</span>
-        </div>
-        <div class="overview-item">
-          <span class="ov-label">检索来源</span>
-          <span class="ov-value">向量库 + BM25 + 药品库</span>
-        </div>
-      </div>
-
-      <div class="profile-header sub">安全机制</div>
-      <ul class="safety-list">
-        <li><el-icon><CircleCheck /></el-icon>高风险问题二次确认</li>
-        <li><el-icon><CircleCheck /></el-icon>回答附带证据引用</li>
-        <li><el-icon><CircleCheck /></el-icon>固定免责声明</li>
-      </ul>
-
-      <div class="profile-note">会话与审计已落库，默认保留 90 天；手机号等敏感信息入库前脱敏。</div>
-    </aside>
   </div>
 </template>
 
@@ -379,17 +351,12 @@ function renderMarkdown(text) {
 <style scoped lang="scss">
 .agent-workbench {
   display: grid;
-  grid-template-columns: 214px minmax(0, 1fr) 262px;
+  grid-template-columns: 214px minmax(0, 1fr);
   height: calc(100vh - 146px);
   border: 1px solid var(--line);
   border-radius: 4px;
   overflow: hidden;
   background: transparent;
-}
-
-.mono {
-  font-family: var(--mono);
-  font-variant-numeric: tabular-nums;
 }
 
 /* 左：会话 */
@@ -453,12 +420,12 @@ function renderMarkdown(text) {
     transition: background 0.2s, color 0.2s;
 
     &:hover {
-      background: rgba(22, 32, 46, 0.025);
+      background: rgba(44, 56, 52, 0.025);
       color: var(--ink);
     }
 
     &.active {
-      background: rgba(42, 74, 107, 0.06);
+      background: rgba(74, 120, 109, 0.06);
       color: var(--ink);
 
       &::before {
@@ -627,7 +594,7 @@ function renderMarkdown(text) {
   }
 
   &.user .msg-bubble {
-    background: rgba(42, 74, 107, 0.07);
+    background: rgba(74, 120, 109, 0.07);
     border-radius: 2px;
     padding: 9px 13px;
   }
@@ -662,7 +629,7 @@ function renderMarkdown(text) {
     :deep(code) {
       font-family: var(--mono);
       font-size: 12px;
-      background: rgba(22, 32, 46, 0.05);
+      background: rgba(44, 56, 52, 0.05);
       padding: 1px 4px;
       border-radius: 2px;
     }
@@ -773,21 +740,21 @@ function renderMarkdown(text) {
 .risk-card {
   margin-top: 10px;
   padding: 12px 14px;
-  border: 1px solid rgba(180, 85, 45, 0.4);
+  border: 1px solid rgba(176, 126, 92, 0.4);
   background: var(--ochre-soft);
   border-radius: 2px;
 
   .risk-title {
     font-size: 12px;
     font-weight: 500;
-    color: #7a3a1e;
+    color: #6b4530;
   }
 
   .risk-msg {
     margin: 4px 0 10px;
     font-size: 12px;
     line-height: 1.7;
-    color: #7a3a1e;
+    color: #6b4530;
   }
 
   :deep(.el-button) {
@@ -796,8 +763,9 @@ function renderMarkdown(text) {
   }
 
   :deep(.el-button--warning) {
-    background: var(--ochre);
-    border-color: var(--ochre);
+    // 白字压在陶土色上需要更深的底，保证小字号可读
+    background: #8f5f3f;
+    border-color: #8f5f3f;
     color: #fff;
   }
 }
@@ -805,7 +773,7 @@ function renderMarkdown(text) {
 .disclaimer-bar {
   padding: 7px 24px;
   border-top: 1px solid var(--line);
-  background: rgba(22, 32, 46, 0.025);
+  background: rgba(44, 56, 52, 0.025);
   font-family: var(--mono);
   font-size: 9.5px;
   letter-spacing: 0.04em;
@@ -852,15 +820,15 @@ function renderMarkdown(text) {
     height: 38px;
     padding: 0 18px;
     border-radius: 2px;
-    background: var(--ink);
-    border-color: var(--ink);
+    background: var(--indigo);
+    border-color: var(--indigo);
     color: var(--paper);
     font-size: 12.5px;
     letter-spacing: 0.04em;
 
     &:hover:not(.is-disabled) {
-      background: var(--indigo);
-      border-color: var(--indigo);
+      background: var(--indigo-2);
+      border-color: var(--indigo-2);
     }
 
     &.is-disabled {
@@ -868,91 +836,6 @@ function renderMarkdown(text) {
       border-color: var(--paper-3);
       color: var(--ink-3);
     }
-  }
-}
-
-/* 右：会话概览 */
-.profile-panel {
-  border-left: 1px solid var(--line);
-  padding: 16px 18px;
-  overflow-y: auto;
-  font-size: 12px;
-
-  .profile-header {
-    font-family: var(--mono);
-    font-size: 10px;
-    letter-spacing: 0.16em;
-    color: var(--ink-3);
-    text-transform: uppercase;
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--line);
-
-    &.sub {
-      margin-top: 22px;
-    }
-  }
-
-  .overview-list {
-    margin-top: 4px;
-  }
-
-  .overview-item {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 10px;
-    padding: 9px 0;
-    border-bottom: 1px solid var(--line-2);
-
-    .ov-label {
-      color: var(--ink-2);
-      font-size: 11.5px;
-      white-space: nowrap;
-    }
-
-    .ov-value {
-      color: var(--ink);
-      font-size: 11.5px;
-      text-align: right;
-    }
-  }
-
-  .safety-list {
-    list-style: none;
-    margin-top: 8px;
-    padding: 0;
-
-    li {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      padding: 5px 0;
-      color: var(--ink-2);
-      font-size: 11.5px;
-
-      :deep(.el-icon) {
-        color: var(--sage);
-        font-size: 12px;
-      }
-    }
-  }
-
-  .profile-note {
-    margin-top: 18px;
-    padding-top: 12px;
-    border-top: 1px solid var(--line);
-    font-size: 11px;
-    line-height: 1.7;
-    color: var(--ink-3);
-  }
-}
-
-@media (max-width: 1200px) {
-  .agent-workbench {
-    grid-template-columns: 200px minmax(0, 1fr);
-  }
-  .profile-panel {
-    display: none;
   }
 }
 
@@ -979,7 +862,7 @@ function renderMarkdown(text) {
 
   &:hover {
     transform: translateX(2px);
-    border-color: rgba(36, 65, 95, 0.28);
+    border-color: rgba(74, 120, 109, 0.28);
     background: rgba(255, 255, 255, 0.22);
   }
 }
@@ -989,9 +872,9 @@ function renderMarkdown(text) {
 }
 
 @keyframes risk-in {
-  0% { opacity: 0; transform: scale(0.985); border-color: rgba(169, 73, 31, 0.9); }
-  60% { border-color: rgba(169, 73, 31, 0.9); }
-  100% { opacity: 1; transform: none; border-color: rgba(169, 73, 31, 0.4); }
+  0% { opacity: 0; transform: scale(0.985); border-color: rgba(176, 126, 92, 0.9); }
+  60% { border-color: rgba(176, 126, 92, 0.9); }
+  100% { opacity: 1; transform: none; border-color: rgba(176, 126, 92, 0.4); }
 }
 
 .chat-empty .suggestion {
@@ -1022,27 +905,17 @@ function renderMarkdown(text) {
 
 /* ---- 色彩层次收尾 ---- */
 .chat-header {
-  background: linear-gradient(90deg, rgba(36, 65, 95, 0.06), transparent 62%);
-}
-
-.profile-panel .profile-header::before {
-  content: '';
-  display: inline-block;
-  width: 2px;
-  height: 10px;
-  background: var(--ochre);
-  margin-right: 7px;
-  vertical-align: -1px;
+  background: linear-gradient(90deg, rgba(74, 120, 109, 0.06), transparent 62%);
 }
 
 .evidence-card :deep(.el-tag--primary) {
   color: var(--indigo);
-  border-color: rgba(36, 65, 95, 0.3);
+  border-color: rgba(74, 120, 109, 0.3);
 }
 
 .evidence-card :deep(.el-tag--success) {
-  color: var(--ochre);
-  border-color: rgba(169, 73, 31, 0.35);
+  color: var(--ochre-deep);
+  border-color: rgba(176, 126, 92, 0.35);
 }
 
 </style>
