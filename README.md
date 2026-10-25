@@ -28,7 +28,7 @@
                      MySQL(aimin) ◀────┴────▶ DeepSeek API
 ```
 
-完整拓扑、数据流与检索细节见仓库根目录的 [`架构图.html`](架构图.html) 与 [`数据流图.html`](数据流图.html)，文字版见 [`架构说明.md`](架构说明.md)。
+完整拓扑、数据流与检索细节见 [`docs/架构图.html`](docs/架构图.html) 与 [`docs/数据流图.html`](docs/数据流图.html)，文字版见 [`docs/架构说明.md`](docs/架构说明.md)。
 
 ## 目录结构
 
@@ -42,10 +42,8 @@ aimin/
 │   ├── aimin-common/        公共组件（base / ds / redis / cache / satoken）
 │   ├── sql/                 建库与增量脚本
 │   └── data/                知识库、向量快照、评测集（运行时数据）
+├── docs/                    项目文档（架构说明/架构图/优化方案/ADR，历史决策见 archive/）
 ├── admin-front/             前端（Vue 3 + Vite 6 + Element Plus）
-├── 架构说明.md               落地架构（as-built）
-├── 优化方案.md               审计与整改记录
-└── ADR-001-可信度阶段.md     近期技术选型决策
 ```
 
 ## 技术栈
@@ -157,10 +155,10 @@ SERVER__PORT=18087 java --enable-preview -jar aimin-agent/target/aimin-agent.jar
 
 | 文件 | 内容 |
 |---|---|
-| [架构说明.md](架构说明.md) | 落地架构、模块职责、核心链路 |
-| [优化方案.md](优化方案.md) | 审计问题清单与分阶段整改记录 |
-| [ADR-001-可信度阶段.md](ADR-001-可信度阶段.md) | 检索与会话相关选型决策 |
-| [架构图.html](架构图.html) / [数据流图.html](数据流图.html) | 可视化架构与数据流 |
+| [docs/架构说明.md](docs/架构说明.md) | 落地架构、模块职责、核心链路 |
+| [docs/优化方案.md](docs/优化方案.md) | 审计问题清单与分阶段整改记录 |
+| [docs/ADR-001-可信度阶段.md](docs/ADR-001-可信度阶段.md) | 检索与会话相关选型决策 |
+| [docs/架构图.html](docs/架构图.html) / [docs/数据流图.html](docs/数据流图.html) | 可视化架构与数据流 |
 
 ## License
 

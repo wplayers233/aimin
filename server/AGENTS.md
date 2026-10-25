@@ -19,9 +19,7 @@ aimin/                          # 工作区根
 │   ├── pom.xml                 # 父 POM：版本管理、--enable-preview、模块注册
 │   ├── docker-compose-infra.yml# 中间件编排（备用；本机已直装 MySQL/Redis，平时不用）
 │   ├── sql/                    # 全量建库脚本（aimin 库，16+ 表）
-│   ├── docs/                   # 架构方案文档（medical-agent-architecture.md）
 │   ├── data/                   # agent 运行时数据（向量库持久化 JSON、上传文档）
-│   ├── logs_*.log              # 各服务启动日志（排错先看这里）
 │   │
 │   ├── aimin-gateway/          # 网关 :8080（Netty）。统一入口 + 鉴权，
 │   │                           # 直连路由 /aimin-{auth,admin,agent}/** → localhost；

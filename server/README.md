@@ -94,5 +94,5 @@ aimin-agent/
 - 评测集为内部自建，指标只用于回归对比，不代表临床效果。
 - 未接入真实 DeepSeek 时回答为演示文本，不能用于验收回答质量。
 
-更多约定见 [AGENTS.md](AGENTS.md)、架构说明 [docs/medical-agent-architecture.md](docs/medical-agent-architecture.md)、
-整体优化记录 [../优化方案.md](../优化方案.md)。
+更多约定见 [AGENTS.md](AGENTS.md)、架构说明 [../docs/medical-agent-architecture.md](../docs/medical-agent-architecture.md)、
+整体优化记录 [../docs/优化方案.md](../docs/优化方案.md)。
