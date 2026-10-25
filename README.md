@@ -136,7 +136,7 @@ aimin/
 │       ├── layout/ ─ 主框架（侧栏 + 顶栏 + 动态菜单）
 │       ├── styles/ ─ 暖砂鼠尾草设计 token 体系
 │       └── utils/ ─ 请求拦截 / 动态路由 / 日期
-└── docs/ ─ 架构文档与决策记录（历史决策见 archive/）
+└── docs/ ─ 架构文档与决策记录（架构说明 / 优化方案 / ADR-001，历史决策见 archive/）
 ```
 
 ---
@@ -219,15 +219,6 @@ SERVER__PORT=18087 java --enable-preview -jar aimin-agent/target/aimin-agent.jar
 - 运行模式为无 Nacos 的本地直连（网关路由写死 `127.0.0.1`），需 `SPRING_CLOUD_NACOS_*_ENABLED=false`。
 
 ---
-
-## 文档
-
-| 文件 | 内容 |
-|---|---|
-| [docs/架构说明.md](docs/架构说明.md) | 落地架构、模块职责、核心链路 |
-| [docs/优化方案.md](docs/优化方案.md) | 审计问题清单与分阶段整改记录 |
-| [docs/ADR-001-可信度阶段.md](docs/ADR-001-可信度阶段.md) | 检索与会话相关选型决策 |
-| [docs/架构图.html](docs/架构图.html) / [docs/数据流图.html](docs/数据流图.html) | 可视化架构与数据流 |
 
 ## License
 
