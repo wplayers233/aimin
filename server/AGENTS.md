@@ -40,6 +40,7 @@ aimin/                          # 工作区根
 │   │       │       GET  /agent/sessions/{id}/messages
 │   │       │       POST /agent/docs    # 知识文档上传入库
 │   │       │       GET  /agent/docs    # 已入库文档列表
+│   │       │       GET  /agent/stats   # 工作台统计（会话/问答/风险计数 + 近 N 天问答量，聚合落库表）
 │   │       ├── service/MedicalAgentService  # ★ 编排核心：意图→风险→检索→流式生成→记忆
 │   │       ├── service/IngestionService     # 入库管线：PDF/MD/TXT（白名单）→按页提文本→章节切片(512字)→向量化→持久化
 │   │       ├── retrieval/VectorRetriever    # 向量召回（bge-small-zh 本地 ONNX）
@@ -58,13 +59,12 @@ aimin/                          # 工作区根
 │       ├── aimin-redis          # Redis 封装 + redis.yml
 │       ├── aimin-cache          # Caffeine/Spring Cache
 │       ├── aimin-satoken        # 登录鉴权框架封装
-│       ├── aimin-es / aimin-mq / aimin-mongo / aimin-file / aimin-generator
 │
 └── admin-front/                # ★ 网页前端（Vue3 + Vite + Element Plus）
     └── src
         ├── main.js             # 入口：ElementPlus、pinia、router、图标全量注册
         ├── router/index.js     # 静态路由（login/agent/knowledge/dashboard）+ 动态路由合并
-        ├── styles/index.scss   # ★ 苹果风全局主题（#0A84FF/圆角12px/EP变量覆盖），改样式从这进
+        ├── styles/index.scss   # ★ 暖砂鼠尾草主题（#436f64 主色 / #f5f1e8 暖纸底 / EP变量覆盖），改样式从这进
         ├── style.css           # 空（Vite 模板残留已清）
         ├── layout/index.vue    # 主框架：毛玻璃侧栏 + 顶栏（菜单由 router.getRoutes 动态生成）
         ├── api/                # 接口封装：auth.js(登录+验证码) / agent.js(★SSE流式+文档管理) / system/*
@@ -74,9 +74,9 @@ aimin/                          # 工作区根
         ├── utils/dynamicRoutes.js # 后端菜单→vue-router 动态注册/重置
         └── views/
             ├── login/          # 登录页（毛玻璃卡；算术验证码，点题面可刷新）
-            ├── agent/          # ★ 诊断工作台：三栏布局、SSE打字机、证据卡、琥珀确认卡（AbortController 可中断）
+            ├── agent/          # ★ 诊断工作台：两栏布局（会话列表 + 对话区）、SSE打字机、证据卡、琥珀确认卡（AbortController 可中断）
             ├── knowledge/      # 知识库管理（拖拽上传入库 + 文档列表）
-            ├── dashboard/      # 首页
+            ├── dashboard/      # 首页：问候展台（时段问候 + 水彩图）+ 真实运行统计（/agent/stats、status、sessions、docs），无演示数据
             └── system|doctor|operations  # 原有管理页面（药品页已随 aimin-drug 下线）
 ```
 
@@ -105,7 +105,7 @@ curl -X POST http://127.0.0.1:8080/aimin-admin/public/auth/token \
 # → code:200 + tokenValue/tokenName(aimin-admin-token) + permissions
 ```
 agent 聊天走 `/aimin-agent/agent/chat`（SSE，事件：start/evidence/delta/risk/done），**必须带 `aimin-admin-token` 头**（网关已纳管，匿名 401）。
-会话/审计接口：`GET /aimin-agent/agent/sessions`、`GET /aimin-agent/agent/sessions/{id}/messages`、`POST /aimin-agent/agent/risk/reject`（放弃高风险问题）、`GET /aimin-agent/agent/status`（模型模式与知识库规模）。
+会话/审计接口：`GET /aimin-agent/agent/sessions`、`GET /aimin-agent/agent/sessions/{id}/messages`、`POST /aimin-agent/agent/risk/reject`（放弃高风险问题）、`GET /aimin-agent/agent/status`（模型模式与知识库规模）、`GET /aimin-agent/agent/stats?days=14`（工作台统计：会话/提问/回答与风险两阶段计数、按天问答量，days 夹取 1~90 对齐清理窗口；首页全部指标来自此接口与 status，禁止硬编码演示数据）。
 
 评测（离线 CLI，跑完自动退出，结果写 `aimin-agent/data/eval/latest.json`）：
 ```bash
@@ -117,7 +117,7 @@ SERVER__PORT=18087 java --enable-preview -jar aimin-agent/target/aimin-agent.jar
 ## 铁律与已踩的坑
 
 1. **运行必须 `--enable-preview`**（父 POM 编译启用了 Java 21 预览特性）。
-2. **启动必须设 `SERVER__PORT`**：WorkBuddy 等环境会泄漏 `SERVER__PORT` 变量，不设会被抢占端口。
+2. **启动必须设 `SERVER__PORT`**：WorkBuddy 等环境会泄漏 `SERVER__PORT` 变量，不设会被抢占端口。**服务默认只绑定 `127.0.0.1`**（各 yml `server.address: ${SERVER__ADDRESS:127.0.0.1}`）：agent/admin 不做自身鉴权只信网关，禁止默认对外暴露；确需局域网访问时显式设 `SERVER__ADDRESS=0.0.0.0` 并自担风险。
 3. **LangChain4j 锁定 0.36.2**：1.x 没有 in-process embedding 模型（`langchain4j-embed-*` 不存在，正确坐标是 `langchain4j-embeddings-bge-small-zh`）。升级前先验证坐标存在。
 4. **医疗安全**：RiskEvaluator 的关键词规则是合规底线，禁止删除或提示词绕过；处方/剂量内容必须两阶段确认后才能生成；免责声明固定输出。
 5. **Maven 用阿里云镜像**（settings.xml 已配，repo.maven.org 直连 403）；本地仓库 `C:/Users/Public/aimin-mvn-repo`（ASCII 路径，避免中文用户名乱码）。
@@ -129,7 +129,7 @@ SERVER__PORT=18087 java --enable-preview -jar aimin-agent/target/aimin-agent.jar
 11. **上传只允许 pdf/md/markdown/txt**：`IngestionService.sanitizeFileName` 会剥离目录、过滤非法字符并校验落地路径必须在上传目录内；新增格式先改白名单。
 12. **数据库增量脚本**：`server/sql/20261018_phase0_hardening.sql`（t_admin 唯一索引 + 删除药品菜单权限），`server/sql/20261019_demo_drugs.sql`（100 条演示药品），`server/sql/20261019_phase2_persistence.sql`（会话/消息/审计三表），新环境建库后按序执行。
 13. **会话与审计必须落库**：Agent 侧统一走 `AgentPersistenceService`（手机号/身份证落库前脱敏），后台登录与管理员/角色变更走 `AdminAuditService`；两者都写 `t_agent_audit`，不要绕过它们直接 insert 明文。
-14. **评测不是单测**：离线仓库缺 `junit-platform-launcher`，`mvn test` 跑不起来；用 `--aimin.eval.enabled=true` 的 CLI。检索阈值 `min-vector-score=0.88` / `min-bm25-score=6.5` 由该数据集标定，换语料或换 embedding 后必须重跑并重标。
+14. **单测与评测各管一层**：`mvn -pl aimin-agent test` 已可用（覆盖 RiskEvaluator 规则、RRF 融合、SessionMemory 裁剪、mask 脱敏、HybridRetriever 门控等纯函数）；检索指标与换语料重标阈值仍以 `--aimin.eval.enabled=true` 的 CLI 评测为唯一口径，`min-vector-score=0.88` / `min-bm25-score=6.5` 由该数据集标定。改动 `RiskEvaluator` 规则后必须重跑评测确认风险识别率不回归。
 15. **演示语料只在知识库为空时灌入**（`aimin.seed-kb.enabled`，目录 `aimin-agent/data/kb-demo`）；要重灌就同时删 `data/agent-docs.json` 与 `data/agent-embeddings.json`。
 
 ## 待办（Roadmap）
