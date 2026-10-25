@@ -147,7 +147,7 @@ function handleLoginRedirect(to, from, next) {
  * 设置页面标题
  */
 function setDocumentTitle(to) {
-  document.title = to.meta.title ? `${to.meta.title} - ElementAdmin` : 'ElementAdmin'
+  document.title = to.meta.title ? `${to.meta.title} - Aimin 医疗诊断工作台` : 'Aimin 医疗诊断工作台'
 }
 
 // 全局前置守卫

@@ -63,7 +63,6 @@ aimin/                          # 工作区根
         ├── main.js             # 入口：ElementPlus、pinia、router、图标全量注册
         ├── router/index.js     # 静态路由（login/agent/knowledge/dashboard）+ 动态路由合并
         ├── styles/index.scss   # ★ 暖砂鼠尾草主题（#436f64 主色 / #f5f1e8 暖纸底 / EP变量覆盖），改样式从这进
-        ├── style.css           # 空（Vite 模板残留已清）
         ├── layout/index.vue    # 主框架：毛玻璃侧栏 + 顶栏（菜单由 router.getRoutes 动态生成）
         ├── api/                # 接口封装：auth.js(登录+验证码) / agent.js(★SSE流式+文档管理) / system/*
         ├── store/              # pinia：user(token) / route(动态菜单) / app(loading)

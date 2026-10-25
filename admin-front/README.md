@@ -27,7 +27,7 @@ SSE 流式接口走 `/api/aimin-agent/agent/chat`，鉴权头由 `api/agent.js` 
 ```
 src/
   api/          agent.js（SSE + 文档）、system/*（管理员/角色/菜单）、auth.js
-  components/   BrandLogo.vue
+  components/   IconSelect（菜单图标选择）
   layout/       侧栏 + 顶栏 + 面包屑
   router/       静态路由 + 后端动态路由合并
   store/        user / route（持久化）
