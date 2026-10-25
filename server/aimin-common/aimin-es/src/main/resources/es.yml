@@ -1,3 +1,0 @@
-spring:
-  elasticsearch:
-    uris: ${ES_URIS}

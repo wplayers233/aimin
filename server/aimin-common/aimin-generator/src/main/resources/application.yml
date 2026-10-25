@@ -1,6 +1,0 @@
-mysql:
-  url: ${MYSQL_URL}
-  username: ${MYSQL_USERNAME}
-  password: ${MYSQL_PASSWORD}
-  author: zhage
-  packageParent: com.oimc.aimin.drug
