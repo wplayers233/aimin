@@ -15,3 +15,21 @@ dist/
 
 # 本机离线构建配置（含绝对路径）
 .mvn-offline-settings.xml
+
+# 本机排障残留：WorkBuddy bridge 客户端安装调试产物，与项目无关，
+# 含 147MB 安装包与带签名的临时下载链接，不得入库。
+bridge-*
+bridge-url.txt
+dl-parts/
+installer-screen.png
+explorer-test*
+inspect-*.ps1
+install-bridge*.ps1
+launch-installer-gui.ps1
+capture-installer-error.ps1
+click-child.ps1
+token-info.ps1
+parallel-download.sh
+run-bridge-install.cmd
+*.exe*
+
