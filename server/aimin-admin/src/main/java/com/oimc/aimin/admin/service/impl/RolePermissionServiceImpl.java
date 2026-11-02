@@ -48,13 +48,6 @@ public class RolePermissionServiceImpl extends ServiceImpl<RolePermissionMapper,
 
     @Override
     @Cacheable(value = CACHE_NAME, keyGenerator = "keyGen")
-    public List<RolePermission> deepGetAll() {
-
-        return listDeep(new LambdaQueryWrapper<RolePermission>());
-    }
-
-    @Override
-    @Cacheable(value = CACHE_NAME, keyGenerator = "keyGen")
     public List<RolePermission> getByIds(Collection<Integer> ids) {
         if (CollectionUtils.isEmpty(ids)) {
             return new ArrayList<>();

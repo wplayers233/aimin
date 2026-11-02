@@ -47,12 +47,6 @@ public class DepartmentServiceImpl extends ServiceImpl<DepartmentMapper, Departm
 
     @Override
     @Cacheable(value = CACHE_NAME, keyGenerator = "keyGen")
-    public List<Department> deepGetAll() {
-        return listDeep(new LambdaQueryWrapper<Department>());
-    }
-
-    @Override
-    @Cacheable(value = CACHE_NAME, keyGenerator = "keyGen")
     public List<Department> getByIds(Collection<Integer> ids) {
         return listByIds(ids);
     }

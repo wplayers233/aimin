@@ -13,8 +13,6 @@ public interface BaseService<T> extends MPJDeepService<T> {
 
     List<T> getAll();
 
-    List<T> deepGetAll();
-
     List<T> getByIds(Collection<Integer> ids);
 
     List<T> deepGetByIds(Collection<Integer> ids);

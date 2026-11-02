@@ -76,12 +76,6 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements Ro
 
     @Override
     @Cacheable(value = CACHE_NAME, keyGenerator = "keyGen")
-    public List<Role> deepGetAll() {
-        return listDeep(new LambdaQueryWrapper<Role>());
-    }
-
-    @Override
-    @Cacheable(value = CACHE_NAME, keyGenerator = "keyGen")
     public List<Role> getByIds(Collection<Integer> ids) {
         return listByIds(ids);
     }

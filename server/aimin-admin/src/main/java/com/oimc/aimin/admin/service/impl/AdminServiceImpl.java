@@ -108,12 +108,6 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, Admin> implements
 
     @Override
     @Cacheable(value= CACHE_NAME, keyGenerator = "keyGen")
-    public List<Admin> deepGetAll() {
-        return listDeep(new LambdaQueryWrapper<Admin>());
-    }
-
-    @Override
-    @Cacheable(value= CACHE_NAME, keyGenerator = "keyGen")
     public List<Admin> getByIds(Collection<Integer> ids) {
         return listByIds(ids);
     }

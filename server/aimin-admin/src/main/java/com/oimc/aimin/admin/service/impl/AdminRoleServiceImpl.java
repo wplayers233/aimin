@@ -55,12 +55,6 @@ public class AdminRoleServiceImpl extends ServiceImpl<AdminRoleMapper, AdminRole
 
     @Override
     @Cacheable(value = CACHE_NAME, keyGenerator = "keyGen")
-    public List<AdminRole> deepGetAll() {
-        return listDeep(new LambdaQueryWrapper<AdminRole>());
-    }
-
-    @Override
-    @Cacheable(value = CACHE_NAME, keyGenerator = "keyGen")
     public List<AdminRole> getByIds(Collection<Integer> ids) {
         return listByIds(ids);
     }

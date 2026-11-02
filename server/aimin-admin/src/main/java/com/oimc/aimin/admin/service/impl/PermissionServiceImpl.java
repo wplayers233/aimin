@@ -110,12 +110,6 @@ public class PermissionServiceImpl extends ServiceImpl<PermissionMapper, Permiss
 
     @Override
     @Cacheable(value = CACHE_NAME, keyGenerator = "keyGen")
-    public List<Permission> deepGetAll() {
-        return listDeep(new LambdaQueryWrapper<Permission>());
-    }
-
-    @Override
-    @Cacheable(value = CACHE_NAME, keyGenerator = "keyGen")
     public List<Permission> getByIds(Collection<Integer> ids) {
         if (ids.isEmpty()) {
             return Collections.emptyList();
