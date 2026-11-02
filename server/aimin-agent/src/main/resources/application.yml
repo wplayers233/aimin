@@ -40,6 +40,9 @@ aimin:
       dir: ./data/kb-demo
     # 药品库（本机 MySQL aimin 库）
     drug:
+      # 药品侧门控：低于该分不入证据集，作用等同知识库的 min-vector-score / min-bm25-score。
+      # 12 在本语料（101 条药品 / 60 题）上标定：药品题 gold 最低 13.35，错配样本 ≤ 5.84。换库需重标。
+      min-score: 12
       datasource:
         url: ${MYSQL_URL:jdbc:mysql://127.0.0.1:3306/aimin?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true}
         username: ${MYSQL_USERNAME:root}
