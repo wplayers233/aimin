@@ -1,0 +1,356 @@
+{
+  "generatedAt" : "2026-10-25T10:02:28.181473800Z",
+  "engine" : "hybrid-vector-bm25",
+  "topK" : 5,
+  "questionCount" : 60,
+  "metrics" : {
+    "recallAt5" : 0.967,
+    "mrr" : 0.781,
+    "drugAccuracyAt5" : 1.0,
+    "riskAccuracy" : 1.0,
+    "refusalRate" : 1.0
+  },
+  "detail" : {
+    "drug" : "12/12",
+    "risk" : "10/10",
+    "fact" : "29/30",
+    "unanswerable" : "8/8"
+  },
+  "failures" : [ {
+    "id" : "q05",
+    "type" : "fact",
+    "question" : "高血压患者每周应做多少中等强度运动？",
+    "detail" : "未命中，top1=03-高血压-常用降压药.md"
+  } ],
+  "diagnostics" : [ {
+    "id" : "q01",
+    "type" : "fact",
+    "vectorTop" : 0.94,
+    "bm25Top" : 22.046,
+    "hybridTop" : [ "01-高血压-诊断与分级.md", "01-高血压-诊断与分级.md", "02-高血压-生活方式干预.md", "01-高血压-诊断与分级.md", "01-高血压-诊断与分级.md" ]
+  }, {
+    "id" : "q02",
+    "type" : "fact",
+    "vectorTop" : 0.931,
+    "bm25Top" : 14.177,
+    "hybridTop" : [ "01-高血压-诊断与分级.md", "01-高血压-诊断与分级.md", "01-高血压-诊断与分级.md", "02-高血压-生活方式干预.md", "03-高血压-常用降压药.md" ]
+  }, {
+    "id" : "q03",
+    "type" : "fact",
+    "vectorTop" : 0.942,
+    "bm25Top" : 17.474,
+    "hybridTop" : [ "01-高血压-诊断与分级.md", "01-高血压-诊断与分级.md", "01-高血压-诊断与分级.md", "01-高血压-诊断与分级.md", "02-高血压-生活方式干预.md" ]
+  }, {
+    "id" : "q04",
+    "type" : "fact",
+    "vectorTop" : 0.918,
+    "bm25Top" : 19.101,
+    "hybridTop" : [ "02-高血压-生活方式干预.md", "01-高血压-诊断与分级.md", "03-高血压-常用降压药.md", "01-高血压-诊断与分级.md", "02-高血压-生活方式干预.md" ]
+  }, {
+    "id" : "q05",
+    "type" : "fact",
+    "vectorTop" : 0.915,
+    "bm25Top" : 21.088,
+    "hybridTop" : [ "03-高血压-常用降压药.md", "01-高血压-诊断与分级.md", "01-高血压-诊断与分级.md", "02-高血压-生活方式干预.md", "01-高血压-诊断与分级.md" ]
+  }, {
+    "id" : "q06",
+    "type" : "fact",
+    "vectorTop" : 0.911,
+    "bm25Top" : 19.341,
+    "hybridTop" : [ "02-高血压-生活方式干预.md", "02-高血压-生活方式干预.md", "01-高血压-诊断与分级.md", "03-高血压-常用降压药.md", "03-高血压-常用降压药.md" ]
+  }, {
+    "id" : "q07",
+    "type" : "fact",
+    "vectorTop" : 0.886,
+    "bm25Top" : 7.963,
+    "hybridTop" : [ "03-高血压-常用降压药.md", "18-抗凝与抗血小板-出血风险.md", "23-肾功能不全-剂量调整.md", "25-常见用药误区.md", "03-高血压-常用降压药.md" ]
+  }, {
+    "id" : "q08",
+    "type" : "fact",
+    "vectorTop" : 0.924,
+    "bm25Top" : 15.757,
+    "hybridTop" : [ "03-高血压-常用降压药.md", "03-高血压-常用降压药.md", "03-高血压-常用降压药.md", "03-高血压-常用降压药.md", "25-常见用药误区.md" ]
+  }, {
+    "id" : "q09",
+    "type" : "fact",
+    "vectorTop" : 0.906,
+    "bm25Top" : 14.086,
+    "hybridTop" : [ "21-妊娠期用药-风险分级.md", "03-高血压-常用降压药.md", "21-妊娠期用药-风险分级.md", "21-妊娠期用药-风险分级.md", "10-过敏性疾病-抗组胺药.md" ]
+  }, {
+    "id" : "q10",
+    "type" : "fact",
+    "vectorTop" : 0.94,
+    "bm25Top" : 15.973,
+    "hybridTop" : [ "04-2型糖尿病-诊断与监测.md", "04-2型糖尿病-诊断与监测.md", "04-2型糖尿病-诊断与监测.md", "05-2型糖尿病-口服降糖药.md", "04-2型糖尿病-诊断与监测.md" ]
+  }, {
+    "id" : "q11",
+    "type" : "fact",
+    "vectorTop" : 0.918,
+    "bm25Top" : 17.758,
+    "hybridTop" : [ "04-2型糖尿病-诊断与监测.md", "04-2型糖尿病-诊断与监测.md", "06-血脂异常-管理要点.md", "03-高血压-常用降压药.md", "04-2型糖尿病-诊断与监测.md" ]
+  }, {
+    "id" : "q12",
+    "type" : "fact",
+    "vectorTop" : 0.933,
+    "bm25Top" : 16.422,
+    "hybridTop" : [ "23-肾功能不全-剂量调整.md", "23-肾功能不全-剂量调整.md", "05-2型糖尿病-口服降糖药.md", "23-肾功能不全-剂量调整.md", "23-肾功能不全-剂量调整.md" ]
+  }, {
+    "id" : "q13",
+    "type" : "fact",
+    "vectorTop" : 0.902,
+    "bm25Top" : 18.096,
+    "hybridTop" : [ "05-2型糖尿病-口服降糖药.md", "05-2型糖尿病-口服降糖药.md", "19-抗菌药物-合理使用原则.md", "03-高血压-常用降压药.md" ]
+  }, {
+    "id" : "q14",
+    "type" : "fact",
+    "vectorTop" : 0.923,
+    "bm25Top" : 25.175,
+    "hybridTop" : [ "06-血脂异常-管理要点.md", "03-高血压-常用降压药.md", "07-冠心病-二级预防.md", "07-冠心病-二级预防.md", "04-2型糖尿病-诊断与监测.md" ]
+  }, {
+    "id" : "q15",
+    "type" : "fact",
+    "vectorTop" : 0.942,
+    "bm25Top" : 17.611,
+    "hybridTop" : [ "24-药物相互作用-常见组合.md", "06-血脂异常-管理要点.md", "07-冠心病-二级预防.md", "06-血脂异常-管理要点.md", "22-肝功能不全-用药调整.md" ]
+  }, {
+    "id" : "q16",
+    "type" : "fact",
+    "vectorTop" : 0.937,
+    "bm25Top" : 36.534,
+    "hybridTop" : [ "07-冠心病-二级预防.md", "17-围手术期-抗凝药管理.md", "18-抗凝与抗血小板-出血风险.md", "17-围手术期-抗凝药管理.md", "17-围手术期-抗凝药管理.md" ]
+  }, {
+    "id" : "q17",
+    "type" : "fact",
+    "vectorTop" : 0.928,
+    "bm25Top" : 25.225,
+    "hybridTop" : [ "25-常见用药误区.md", "19-抗菌药物-合理使用原则.md", "08-上呼吸道感染-家庭处理.md", "08-上呼吸道感染-家庭处理.md", "25-常见用药误区.md" ]
+  }, {
+    "id" : "q18",
+    "type" : "fact",
+    "vectorTop" : 0.902,
+    "bm25Top" : 15.912,
+    "hybridTop" : [ "22-肝功能不全-用药调整.md", "08-上呼吸道感染-家庭处理.md", "25-常见用药误区.md", "21-妊娠期用药-风险分级.md", "20-儿童发热-退热药与就医指征.md" ]
+  }, {
+    "id" : "q19",
+    "type" : "fact",
+    "vectorTop" : 0.922,
+    "bm25Top" : 19.8,
+    "hybridTop" : [ "20-儿童发热-退热药与就医指征.md", "08-上呼吸道感染-家庭处理.md", "08-上呼吸道感染-家庭处理.md", "08-上呼吸道感染-家庭处理.md", "09-社区获得性肺炎-识别与就医.md" ]
+  }, {
+    "id" : "q20",
+    "type" : "fact",
+    "vectorTop" : 0.912,
+    "bm25Top" : 34.679,
+    "hybridTop" : [ "09-社区获得性肺炎-识别与就医.md", "18-抗凝与抗血小板-出血风险.md", "09-社区获得性肺炎-识别与就医.md", "09-社区获得性肺炎-识别与就医.md", "24-药物相互作用-常见组合.md" ]
+  }, {
+    "id" : "q21",
+    "type" : "fact",
+    "vectorTop" : 0.897,
+    "bm25Top" : 16.319,
+    "hybridTop" : [ "10-过敏性疾病-抗组胺药.md" ]
+  }, {
+    "id" : "q22",
+    "type" : "fact",
+    "vectorTop" : 0.915,
+    "bm25Top" : 43.689,
+    "hybridTop" : [ "10-过敏性疾病-抗组胺药.md", "11-哮喘-长期控制与急性发作.md", "19-抗菌药物-合理使用原则.md", "08-上呼吸道感染-家庭处理.md" ]
+  }, {
+    "id" : "q23",
+    "type" : "fact",
+    "vectorTop" : 0.939,
+    "bm25Top" : 14.589,
+    "hybridTop" : [ "11-哮喘-长期控制与急性发作.md", "11-哮喘-长期控制与急性发作.md", "11-哮喘-长期控制与急性发作.md", "25-常见用药误区.md" ]
+  }, {
+    "id" : "q24",
+    "type" : "fact",
+    "vectorTop" : 0.928,
+    "bm25Top" : 16.196,
+    "hybridTop" : [ "11-哮喘-长期控制与急性发作.md", "11-哮喘-长期控制与急性发作.md", "11-哮喘-长期控制与急性发作.md", "15-偏头痛-急性期与预防.md", "10-过敏性疾病-抗组胺药.md" ]
+  }, {
+    "id" : "q25",
+    "type" : "fact",
+    "vectorTop" : 0.913,
+    "bm25Top" : 13.287,
+    "hybridTop" : [ "12-胃食管反流-用药与生活调整.md", "21-妊娠期用药-风险分级.md" ]
+  }, {
+    "id" : "q26",
+    "type" : "fact",
+    "vectorTop" : 0.939,
+    "bm25Top" : 19.168,
+    "hybridTop" : [ "12-胃食管反流-用药与生活调整.md", "12-胃食管反流-用药与生活调整.md", "08-上呼吸道感染-家庭处理.md" ]
+  }, {
+    "id" : "q27",
+    "type" : "fact",
+    "vectorTop" : 0.94,
+    "bm25Top" : 34.186,
+    "hybridTop" : [ "13-消化性溃疡-幽门螺杆菌根除.md", "13-消化性溃疡-幽门螺杆菌根除.md", "13-消化性溃疡-幽门螺杆菌根除.md", "17-围手术期-抗凝药管理.md", "22-肝功能不全-用药调整.md" ]
+  }, {
+    "id" : "q28",
+    "type" : "fact",
+    "vectorTop" : 0.929,
+    "bm25Top" : 12.982,
+    "hybridTop" : [ "14-便秘-分级处理.md", "14-便秘-分级处理.md", "14-便秘-分级处理.md", "14-便秘-分级处理.md", "14-便秘-分级处理.md" ]
+  }, {
+    "id" : "q29",
+    "type" : "fact",
+    "vectorTop" : 0.897,
+    "bm25Top" : 25.088,
+    "hybridTop" : [ "14-便秘-分级处理.md", "25-常见用药误区.md", "13-消化性溃疡-幽门螺杆菌根除.md", "16-骨关节炎-镇痛与运动.md", "14-便秘-分级处理.md" ]
+  }, {
+    "id" : "q30",
+    "type" : "fact",
+    "vectorTop" : 0.951,
+    "bm25Top" : 11.562,
+    "hybridTop" : [ "15-偏头痛-急性期与预防.md", "15-偏头痛-急性期与预防.md", "15-偏头痛-急性期与预防.md", "18-抗凝与抗血小板-出血风险.md", "15-偏头痛-急性期与预防.md" ]
+  }, {
+    "id" : "q31",
+    "type" : "drug",
+    "vectorTop" : 0.929,
+    "bm25Top" : 24.881
+  }, {
+    "id" : "q32",
+    "type" : "drug",
+    "vectorTop" : 0.926,
+    "bm25Top" : 18.694
+  }, {
+    "id" : "q33",
+    "type" : "drug",
+    "vectorTop" : 0.928,
+    "bm25Top" : 19.168
+  }, {
+    "id" : "q34",
+    "type" : "drug",
+    "vectorTop" : 0.944,
+    "bm25Top" : 28.354
+  }, {
+    "id" : "q35",
+    "type" : "drug",
+    "vectorTop" : 0.924,
+    "bm25Top" : 14.286
+  }, {
+    "id" : "q36",
+    "type" : "drug",
+    "vectorTop" : 0.961,
+    "bm25Top" : 38.092
+  }, {
+    "id" : "q37",
+    "type" : "drug",
+    "vectorTop" : 0.919,
+    "bm25Top" : 20.936
+  }, {
+    "id" : "q38",
+    "type" : "drug",
+    "vectorTop" : 0.908,
+    "bm25Top" : 3.989
+  }, {
+    "id" : "q39",
+    "type" : "drug",
+    "vectorTop" : 0.916,
+    "bm25Top" : 11.356
+  }, {
+    "id" : "q40",
+    "type" : "drug",
+    "vectorTop" : 0.87,
+    "bm25Top" : 4.792
+  }, {
+    "id" : "q41",
+    "type" : "drug",
+    "vectorTop" : 0.899,
+    "bm25Top" : 9.687
+  }, {
+    "id" : "q42",
+    "type" : "drug",
+    "vectorTop" : 0.92,
+    "bm25Top" : 13.67
+  }, {
+    "id" : "q43",
+    "type" : "risk",
+    "vectorTop" : 0.89,
+    "bm25Top" : 9.902
+  }, {
+    "id" : "q44",
+    "type" : "risk",
+    "vectorTop" : 0.882,
+    "bm25Top" : 7.961
+  }, {
+    "id" : "q45",
+    "type" : "risk",
+    "vectorTop" : 0.871,
+    "bm25Top" : 14.586
+  }, {
+    "id" : "q46",
+    "type" : "risk",
+    "vectorTop" : 0.928,
+    "bm25Top" : 17.692
+  }, {
+    "id" : "q47",
+    "type" : "risk",
+    "vectorTop" : 0.936,
+    "bm25Top" : 15.543
+  }, {
+    "id" : "q48",
+    "type" : "risk",
+    "vectorTop" : 0.907,
+    "bm25Top" : 12.865
+  }, {
+    "id" : "q49",
+    "type" : "risk",
+    "vectorTop" : 0.898,
+    "bm25Top" : 9.666
+  }, {
+    "id" : "q50",
+    "type" : "risk",
+    "vectorTop" : 0.898,
+    "bm25Top" : 19.293
+  }, {
+    "id" : "q51",
+    "type" : "risk",
+    "vectorTop" : 0.889,
+    "bm25Top" : 5.445
+  }, {
+    "id" : "q52",
+    "type" : "risk",
+    "vectorTop" : 0.924,
+    "bm25Top" : 10.74
+  }, {
+    "id" : "q53",
+    "type" : "unanswerable",
+    "vectorTop" : 0.848,
+    "bm25Top" : 5.424
+  }, {
+    "id" : "q54",
+    "type" : "unanswerable",
+    "vectorTop" : 0.847,
+    "bm25Top" : 0.0
+  }, {
+    "id" : "q55",
+    "type" : "unanswerable",
+    "vectorTop" : 0.847,
+    "bm25Top" : 0.0
+  }, {
+    "id" : "q56",
+    "type" : "unanswerable",
+    "vectorTop" : 0.869,
+    "bm25Top" : 0.0
+  }, {
+    "id" : "q57",
+    "type" : "unanswerable",
+    "vectorTop" : 0.828,
+    "bm25Top" : 0.0
+  }, {
+    "id" : "q58",
+    "type" : "unanswerable",
+    "vectorTop" : 0.875,
+    "bm25Top" : 5.243
+  }, {
+    "id" : "q59",
+    "type" : "unanswerable",
+    "vectorTop" : 0.857,
+    "bm25Top" : 0.0
+  }, {
+    "id" : "q60",
+    "type" : "unanswerable",
+    "vectorTop" : 0.834,
+    "bm25Top" : 4.843
+  } ]
+}
