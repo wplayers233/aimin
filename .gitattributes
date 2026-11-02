@@ -1,0 +1,15 @@
+# ============================================================
+# GitHub 语言统计（linguist）配置
+#
+# 背景：admin-front/design/prototype.html 是 821KB 的自包含设计原型
+# （HTML 内联 CSS），单文件字节数就超过全部 Java 源码（321KB），
+# 按 GitHub 的字节占比算法会把本仓库识别成 HTML 项目。
+# 以下规则把这类设计资产与图表从语言占比中排除。
+# ============================================================
+
+# 设计原型：属设计资产，不是站点页面，不计入语言统计
+admin-front/design/**     linguist-documentation
+
+# 文档内的架构图与数据流图（docs/ 本身已命中 linguist 默认文档规则，
+# 这里显式声明，避免将来增删文件后行为变化）
+docs/**/*.html            linguist-documentation
